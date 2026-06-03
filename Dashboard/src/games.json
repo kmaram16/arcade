@@ -1,0 +1,134 @@
+[
+  {
+    "id": "snake",
+    "name": "Snake",
+    "tagline": "Grow the snake, dodge your tail.",
+    "icon": "🐍",
+    "accent": ["#0ea5e9", "#6366f1"],
+    "status": "ready",
+    "devPort": 4173,
+    "difficulty": "Easy",
+    "folder": "Snake"
+  },
+  {
+    "id": "tetris",
+    "name": "Tetris",
+    "tagline": "Stack falling blocks, clear lines.",
+    "icon": "🧱",
+    "accent": ["#f59e0b", "#ef4444"],
+    "status": "soon",
+    "devPort": 4174,
+    "difficulty": "Medium",
+    "folder": "Tetris"
+  },
+  {
+    "id": "breakout",
+    "name": "Breakout",
+    "tagline": "Bounce the ball, smash the bricks.",
+    "icon": "🧱",
+    "accent": ["#ec4899", "#8b5cf6"],
+    "status": "soon",
+    "devPort": 4175,
+    "difficulty": "Easy",
+    "folder": "Breakout"
+  },
+  {
+    "id": "pong",
+    "name": "Pong",
+    "tagline": "Classic paddle duel to eleven.",
+    "icon": "🏓",
+    "accent": ["#10b981", "#0ea5e9"],
+    "status": "soon",
+    "devPort": 4176,
+    "difficulty": "Easy",
+    "folder": "Pong"
+  },
+  {
+    "id": "flappy",
+    "name": "Flappy",
+    "tagline": "One tap to flap through the gaps.",
+    "icon": "🐤",
+    "accent": ["#fbbf24", "#f97316"],
+    "status": "soon",
+    "devPort": 4177,
+    "difficulty": "Easy",
+    "folder": "Flappy"
+  },
+  {
+    "id": "2048",
+    "name": "2048",
+    "tagline": "Swipe to merge tiles up to 2048.",
+    "icon": "🔢",
+    "accent": ["#f472b6", "#fb7185"],
+    "status": "soon",
+    "devPort": 4178,
+    "difficulty": "Medium",
+    "folder": "2048"
+  },
+  {
+    "id": "minesweeper",
+    "name": "Minesweeper",
+    "tagline": "Clear the field, flag the mines.",
+    "icon": "💣",
+    "accent": ["#64748b", "#0f172a"],
+    "status": "soon",
+    "devPort": 4179,
+    "difficulty": "Medium",
+    "folder": "Minesweeper"
+  },
+  {
+    "id": "memory",
+    "name": "Memory Match",
+    "tagline": "Flip cards, find the matching pairs.",
+    "icon": "🃏",
+    "accent": ["#22d3ee", "#3b82f6"],
+    "status": "soon",
+    "devPort": 4180,
+    "difficulty": "Easy",
+    "folder": "MemoryMatch"
+  },
+  {
+    "id": "whack",
+    "name": "Whack-a-Mole",
+    "tagline": "Tap the moles before they hide.",
+    "icon": "🔨",
+    "accent": ["#a3e635", "#22c55e"],
+    "status": "soon",
+    "devPort": 4181,
+    "difficulty": "Easy",
+    "folder": "WhackAMole"
+  },
+  {
+    "id": "invaders",
+    "name": "Space Invaders",
+    "tagline": "Shoot down the descending waves.",
+    "icon": "👾",
+    "accent": ["#8b5cf6", "#6366f1"],
+    "status": "soon",
+    "devPort": 4182,
+    "difficulty": "Medium",
+    "folder": "SpaceInvaders"
+  },
+  {
+    "id": "simon",
+    "name": "Simon",
+    "tagline": "Repeat the glowing color sequence.",
+    "icon": "🎵",
+    "accent": ["#f43f5e", "#ec4899"],
+    "status": "soon",
+    "devPort": 4183,
+    "difficulty": "Easy",
+    "folder": "Simon"
+  },
+  {
+    "id": "asteroids",
+    "name": "Asteroids",
+    "tagline": "Rotate, thrust, blast the rocks.",
+    "icon": "🚀",
+    "accent": ["#0ea5e9", "#14b8a6"],
+    "status": "soon",
+    "devPort": 4184,
+    "difficulty": "Hard",
+    "folder": "Asteroids"
+  }
+]

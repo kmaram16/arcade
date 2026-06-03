@@ -8,10 +8,18 @@
   position: relative;
 }
 
+/* The whole dashboard sits inside one big frosted-glass panel. */
 .hero-panel {
   display: flex;
   flex-direction: column;
   gap: 28px;
+  padding: clamp(22px, 3vw, 40px);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
 }
 
 /* ---- Hero ---- */
@@ -28,7 +36,7 @@
   font-weight: 700;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: #6366f1;
+  color: #4f46e5;
 }
 
 .hero-headline h1 {
@@ -51,18 +59,20 @@
   margin: 14px 0 0;
   max-width: 46ch;
   font-size: 16px;
-  color: #475569;
+  color: var(--muted);
 }
 
 .pill {
   flex-shrink: 0;
   padding: 8px 14px;
   border-radius: 999px;
-  background: rgba(16, 185, 129, 0.12);
+  background: rgba(16, 185, 129, 0.16);
+  border: 1px solid rgba(16, 185, 129, 0.28);
   color: #047857;
   font-size: 13px;
   font-weight: 700;
   white-space: nowrap;
+  backdrop-filter: blur(6px);
 }
 
 /* ---- Toolbar ---- */
@@ -85,7 +95,7 @@
   position: absolute;
   left: 16px;
   font-size: 18px;
-  color: #94a3b8;
+  color: #64748b;
   pointer-events: none;
 }
 
@@ -93,24 +103,33 @@
   width: 100%;
   padding: 13px 16px 13px 42px;
   border-radius: 14px;
-  border: 1px solid rgba(15, 23, 42, 0.08);
-  background: rgba(255, 255, 255, 0.85);
-  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  color: var(--ink);
   font-size: 15px;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+.search input::placeholder {
+  color: #64748b;
 }
 
 .search input:focus {
-  border-color: #6366f1;
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
+  border-color: #818cf8;
+  background: rgba(255, 255, 255, 0.55);
+  box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.18);
 }
 
 .filters {
   display: inline-flex;
   padding: 4px;
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--glass-border);
 }
 
 .filter-tab {
@@ -120,14 +139,14 @@
   border-radius: 10px;
   font-size: 14px;
   font-weight: 600;
-  color: #64748b;
-  transition: background 0.15s ease, color 0.15s ease;
+  color: #475569;
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
 }
 
 .filter-tab.active {
   background: linear-gradient(120deg, #0ea5e9, #6366f1);
   color: #fff;
-  box-shadow: 0 6px 16px rgba(99, 102, 241, 0.28);
+  box-shadow: 0 8px 18px rgba(99, 102, 241, 0.34);
 }
 
 /* ---- Grid ---- */
@@ -137,22 +156,27 @@
   gap: 16px;
 }
 
+/* Each game tile is its own little pane of frosted glass. */
 .game-card {
   display: flex;
   gap: 16px;
   padding: 18px;
   text-align: left;
-  border: 1px solid rgba(15, 23, 42, 0.06);
+  border: 1px solid var(--glass-border);
   border-radius: 20px;
-  background: rgba(255, 255, 255, 0.88);
-  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.06);
-  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(14px) saturate(130%);
+  -webkit-backdrop-filter: blur(14px) saturate(130%);
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease,
+    background 0.18s ease;
 }
 
 .game-card:not(:disabled):hover {
-  transform: translateY(-4px);
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.12);
-  border-color: rgba(99, 102, 241, 0.3);
+  transform: translateY(-5px);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: 0 26px 54px rgba(31, 38, 135, 0.26), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+  border-color: rgba(255, 255, 255, 0.9);
 }
 
 .game-card:not(:disabled):active {
@@ -161,7 +185,8 @@
 
 .game-card.is-soon {
   cursor: default;
-  opacity: 0.72;
+  background: var(--glass-bg-soft);
+  box-shadow: 0 10px 26px rgba(31, 38, 135, 0.1);
 }
 
 .game-icon {
@@ -172,11 +197,11 @@
   place-items: center;
   font-size: 30px;
   border-radius: 16px;
-  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.16);
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.4);
 }
 
 .is-soon .game-icon {
-  filter: saturate(0.55);
+  filter: saturate(0.5) opacity(0.8);
 }
 
 .game-body {
@@ -210,7 +235,7 @@
 
 .status-dot.live {
   background: #10b981;
-  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.18);
+  box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.22), 0 0 12px rgba(16, 185, 129, 0.7);
 }
 
 .status-dot.soon {
@@ -220,7 +245,7 @@
 .game-tagline {
   margin: 0;
   font-size: 13.5px;
-  color: #64748b;
+  color: var(--muted);
   line-height: 1.4;
 }
 
@@ -236,7 +261,7 @@
 .meta-tag {
   padding: 3px 10px;
   border-radius: 999px;
-  background: rgba(99, 102, 241, 0.1);
+  background: rgba(99, 102, 241, 0.14);
   color: #4f46e5;
   font-size: 11.5px;
   font-weight: 700;
@@ -245,7 +270,7 @@
 .play-label {
   font-size: 14px;
   font-weight: 700;
-  color: #0ea5e9;
+  color: #0284c7;
 }
 
 .soon-label {
@@ -259,16 +284,26 @@
   margin: 12px 0;
   padding: 32px;
   text-align: center;
-  color: #94a3b8;
-  background: rgba(255, 255, 255, 0.6);
+  color: #64748b;
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(8px);
   border-radius: 16px;
-  border: 1px dashed rgba(15, 23, 42, 0.12);
+  border: 1px dashed rgba(255, 255, 255, 0.7);
 }
 
 .status-copy {
   margin: 0;
   font-size: 13.5px;
-  color: #64748b;
+  color: var(--muted);
+}
+
+.status-copy code {
+  font-family: ui-monospace, 'SFMono-Regular', Menlo, monospace;
+  font-size: 12.5px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.55);
+  border: 1px solid var(--glass-border);
 }
 
 @media (max-width: 560px) {

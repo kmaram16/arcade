@@ -126,7 +126,7 @@
     "tagline": "Rotate, thrust, blast the rocks.",
     "icon": "🚀",
     "accent": ["#0ea5e9", "#14b8a6"],
-    "status": "soon",
+    "status": "ready",
     "devPort": 4184,
     "difficulty": "Hard",
     "folder": "Asteroids"

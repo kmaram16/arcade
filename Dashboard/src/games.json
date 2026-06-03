@@ -49,7 +49,7 @@
     "tagline": "One tap to flap through the gaps.",
     "icon": "🐤",
     "accent": ["#fbbf24", "#f97316"],
-    "status": "soon",
+    "status": "ready",
     "devPort": 4177,
     "difficulty": "Easy",
     "folder": "Flappy"

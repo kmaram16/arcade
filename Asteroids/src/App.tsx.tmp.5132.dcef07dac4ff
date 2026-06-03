@@ -1,0 +1,671 @@
+import { useEffect, useRef, useState } from 'react';
+import './App.css';
+
+// ===== The playing field =====
+const W = 600;
+const H = 440;
+
+// ===== How the ship feels =====
+const SHIP_R = 14; // ship size
+const ROT_SPEED = 0.075; // how fast it spins
+const THRUST = 0.13; // how hard the engine pushes
+const FRICTION = 0.99; // a tiny bit of space "drag" so you slow down
+const BULLET_SPEED = 7;
+const BULLET_LIFE = 55; // frames a bullet lives before fizzling out
+const MAX_BULLETS = 6;
+const FIRE_COOLDOWN = 9; // frames between shots
+const INVULN = 120; // frames you're safe after respawning
+const START_LIVES = 3;
+
+// Asteroid sizes: 3 = big, 2 = medium, 1 = small.
+const AST_RADIUS: Record<number, number> = { 3: 42, 2: 24, 1: 13 };
+const AST_POINTS: Record<number, number> = { 3: 20, 2: 50, 1: 100 };
+
+const NAMES_KEY = 'asteroids-names';
+const SCORES_KEY = 'asteroids-best-by-user';
+
+type Status = 'menu' | 'playing' | 'over';
+type Scores = Record<string, number>;
+type Ship = { x: number; y: number; vx: number; vy: number; angle: number; invuln: number };
+type Bullet = { x: number; y: number; vx: number; vy: number; life: number };
+type Asteroid = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  size: number;
+  r: number;
+  verts: number[]; // jagged outline
+  spin: number;
+  rot: number;
+};
+// A rare bonus planet that drifts across the screen.
+type Planet = { x: number; y: number; vx: number; vy: number; r: number; color: string; ring: boolean };
+// Little sparks for the explosion effect.
+type Particle = { x: number; y: number; vx: number; vy: number; life: number; max: number; color: string };
+
+const PLANET_COLORS = ['#f59e0b', '#ef4444', '#a855f7', '#22c55e', '#06b6d4', '#ec4899'];
+
+// Make a bonus planet that flies in from one side.
+function makePlanet(): Planet {
+  const fromLeft = Math.random() < 0.5;
+  const speed = 1 + Math.random() * 1.2;
+  return {
+    x: fromLeft ? -40 : W + 40,
+    y: 50 + Math.random() * (H - 100),
+    vx: fromLeft ? speed : -speed,
+    vy: (Math.random() - 0.5) * 0.6,
+    r: 18 + Math.random() * 12,
+    color: PLANET_COLORS[Math.floor(Math.random() * PLANET_COLORS.length)],
+    ring: Math.random() < 0.5
+  };
+}
+
+// Keep a value on the screen by wrapping it around the edges.
+function wrap(v: number, max: number): number {
+  if (v < 0) return v + max;
+  if (v > max) return v - max;
+  return v;
+}
+
+function makeAsteroid(x: number, y: number, size: number): Asteroid {
+  const r = AST_RADIUS[size];
+  const speed = (4 - size) * 0.35 + Math.random() * 0.7;
+  const dir = Math.random() * Math.PI * 2;
+  const verts = Array.from({ length: 10 }, () => 0.75 + Math.random() * 0.45);
+  return {
+    x,
+    y,
+    vx: Math.cos(dir) * speed,
+    vy: Math.sin(dir) * speed,
+    size,
+    r,
+    verts,
+    spin: (Math.random() - 0.5) * 0.04,
+    rot: 0
+  };
+}
+
+function App() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  const shipRef = useRef<Ship>({ x: W / 2, y: H / 2, vx: 0, vy: 0, angle: 0, invuln: 0 });
+  const bulletsRef = useRef<Bullet[]>([]);
+  const asteroidsRef = useRef<Asteroid[]>([]);
+  const planetRef = useRef<Planet | null>(null);
+  const particlesRef = useRef<Particle[]>([]);
+  const statusRef = useRef<Status>('menu');
+  const scoreRef = useRef(0);
+  const livesRef = useRef(START_LIVES);
+  const levelRef = useRef(1);
+  const cooldownRef = useRef(0);
+  // Controls that can be held down.
+  const ctrlRef = useRef({ left: false, right: false, thrust: false, fire: false });
+
+  const [status, setStatus] = useState<Status>('menu');
+  const [score, setScore] = useState(0);
+  const [lives, setLives] = useState(START_LIVES);
+  const [scores, setScores] = useState<Scores>({});
+
+  // Player menu (same as the other arcade games).
+  const [names, setNames] = useState<string[]>([]);
+  const [selectedName, setSelectedName] = useState('');
+  const [username, setUsername] = useState('');
+  const [nameInput, setNameInput] = useState('');
+
+  useEffect(() => {
+    statusRef.current = status;
+  }, [status]);
+
+  useEffect(() => {
+    const savedScores: Scores = JSON.parse(localStorage.getItem(SCORES_KEY) || '{}');
+    const savedNames: string[] = JSON.parse(localStorage.getItem(NAMES_KEY) || '[]');
+    const merged = Array.from(new Set([...savedNames, ...Object.keys(savedScores)]));
+    setScores(savedScores);
+    setNames(merged);
+    if (merged.length > 0) setSelectedName(merged[0]);
+  }, []);
+
+  const best = username ? scores[username] || 0 : 0;
+
+  const saveNames = (next: string[]) => {
+    setNames(next);
+    localStorage.setItem(NAMES_KEY, JSON.stringify(next));
+  };
+
+  const addName = () => {
+    const n = nameInput.trim();
+    if (!n) return;
+    if (!names.includes(n)) saveNames([n, ...names]);
+    setSelectedName(n);
+    setNameInput('');
+  };
+
+  const removeName = (n: string) => {
+    saveNames(names.filter((x) => x !== n));
+    if (scores[n] !== undefined) {
+      const next = { ...scores };
+      delete next[n];
+      setScores(next);
+      localStorage.setItem(SCORES_KEY, JSON.stringify(next));
+    }
+    if (selectedName === n) setSelectedName('');
+  };
+
+  // Fill the screen with a fresh wave of big asteroids, kept away from the ship.
+  const spawnWave = (count: number) => {
+    const list: Asteroid[] = [];
+    for (let i = 0; i < count; i += 1) {
+      let x = 0;
+      let y = 0;
+      do {
+        x = Math.random() * W;
+        y = Math.random() * H;
+      } while (Math.hypot(x - W / 2, y - H / 2) < 140); // not too close to the ship
+      list.push(makeAsteroid(x, y, 3));
+    }
+    asteroidsRef.current = list;
+  };
+
+  const gameOver = () => {
+    statusRef.current = 'over';
+    setStatus('over');
+    if (username && scoreRef.current > (scores[username] || 0)) {
+      const next = { ...scores, [username]: scoreRef.current };
+      setScores(next);
+      localStorage.setItem(SCORES_KEY, JSON.stringify(next));
+    }
+  };
+
+  const resetShip = () => {
+    shipRef.current = { x: W / 2, y: H / 2, vx: 0, vy: 0, angle: 0, invuln: INVULN };
+  };
+
+  // Throw out a burst of colored sparks at (x, y) — the explosion effect.
+  const spawnParticles = (x: number, y: number, color: string, count: number) => {
+    for (let i = 0; i < count; i += 1) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = Math.random() * 3 + 1;
+      const max = 28 + Math.random() * 22;
+      particlesRef.current.push({
+        x,
+        y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        life: max,
+        max,
+        color
+      });
+    }
+  };
+
+  // Throw out a burst of colored sparks at (x, y) — the explosion effect.
+  const spawnParticles = (x: number, y: number, color: string, count: number) => {
+    for (let i = 0; i < count; i += 1) {
+      const a = Math.random() * Math.PI * 2;
+      const sp = Math.random() * 3 + 1;
+      const max = 28 + Math.random() * 22;
+      particlesRef.current.push({
+        x,
+        y,
+        vx: Math.cos(a) * sp,
+        vy: Math.sin(a) * sp,
+        life: max,
+        max,
+        color
+      });
+    }
+  };
+
+  const startGame = () => {
+    const name = selectedName || username;
+    if (!name) return;
+    setUsername(name);
+    scoreRef.current = 0;
+    livesRef.current = START_LIVES;
+    levelRef.current = 1;
+    bulletsRef.current = [];
+    planetRef.current = null;
+    particlesRef.current = [];
+    cooldownRef.current = 0;
+    setScore(0);
+    setLives(START_LIVES);
+    resetShip();
+    spawnWave(4);
+    statusRef.current = 'playing';
+    setStatus('playing');
+  };
+
+  const stopGame = () => {
+    statusRef.current = 'menu';
+    setStatus('menu');
+  };
+
+  const fire = () => {
+    if (bulletsRef.current.length >= MAX_BULLETS) return;
+    const s = shipRef.current;
+    const nx = Math.sin(s.angle);
+    const ny = -Math.cos(s.angle);
+    bulletsRef.current.push({
+      x: s.x + nx * SHIP_R,
+      y: s.y + ny * SHIP_R,
+      vx: nx * BULLET_SPEED + s.vx,
+      vy: ny * BULLET_SPEED + s.vy,
+      life: BULLET_LIFE
+    });
+  };
+
+  // Keyboard controls.
+  useEffect(() => {
+    const set = (e: KeyboardEvent, down: boolean) => {
+      const target = e.target as HTMLElement | null;
+      if (target && target.tagName === 'INPUT') return;
+      const k = e.key;
+      if (k === 'ArrowLeft' || k === 'a' || k === 'A') ctrlRef.current.left = down;
+      else if (k === 'ArrowRight' || k === 'd' || k === 'D') ctrlRef.current.right = down;
+      else if (k === 'ArrowUp' || k === 'w' || k === 'W') ctrlRef.current.thrust = down;
+      else if (k === ' ') ctrlRef.current.fire = down;
+      else return;
+      e.preventDefault();
+    };
+    const onDown = (e: KeyboardEvent) => set(e, true);
+    const onUp = (e: KeyboardEvent) => set(e, false);
+    window.addEventListener('keydown', onDown);
+    window.addEventListener('keyup', onUp);
+    return () => {
+      window.removeEventListener('keydown', onDown);
+      window.removeEventListener('keyup', onUp);
+    };
+  }, []);
+
+  // ===== The game loop =====
+  useEffect(() => {
+    if (status === 'menu') return;
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return;
+
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = W * dpr;
+    canvas.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+    // A starry background (made once per game).
+    const stars = Array.from({ length: 70 }, () => ({
+      x: Math.random() * W,
+      y: Math.random() * H,
+      r: Math.random() * 1.4 + 0.3
+    }));
+
+    let raf = 0;
+
+    const hitShip = () => {
+      livesRef.current -= 1;
+      setLives(livesRef.current);
+      if (livesRef.current <= 0) {
+        gameOver();
+      } else {
+        resetShip();
+      }
+    };
+
+    const update = () => {
+      const s = shipRef.current;
+      const c = ctrlRef.current;
+
+      // Turn and thrust.
+      if (c.left) s.angle -= ROT_SPEED;
+      if (c.right) s.angle += ROT_SPEED;
+      if (c.thrust) {
+        s.vx += Math.sin(s.angle) * THRUST;
+        s.vy += -Math.cos(s.angle) * THRUST;
+      }
+      s.vx *= FRICTION;
+      s.vy *= FRICTION;
+      s.x = wrap(s.x + s.vx, W);
+      s.y = wrap(s.y + s.vy, H);
+      if (s.invuln > 0) s.invuln -= 1;
+
+      // Shooting.
+      if (cooldownRef.current > 0) cooldownRef.current -= 1;
+      if (c.fire && cooldownRef.current <= 0) {
+        fire();
+        cooldownRef.current = FIRE_COOLDOWN;
+      }
+
+      // Move bullets.
+      bulletsRef.current = bulletsRef.current.filter((b) => {
+        b.x = wrap(b.x + b.vx, W);
+        b.y = wrap(b.y + b.vy, H);
+        b.life -= 1;
+        return b.life > 0;
+      });
+
+      // Move asteroids.
+      for (const a of asteroidsRef.current) {
+        a.x = wrap(a.x + a.vx, W);
+        a.y = wrap(a.y + a.vy, H);
+        a.rot += a.spin;
+      }
+
+      // Bullet hits asteroid → split it.
+      const newAsteroids: Asteroid[] = [];
+      for (const a of asteroidsRef.current) {
+        let destroyed = false;
+        for (const b of bulletsRef.current) {
+          if (Math.hypot(a.x - b.x, a.y - b.y) < a.r) {
+            destroyed = true;
+            b.life = 0; // use up the bullet
+            scoreRef.current += AST_POINTS[a.size];
+            setScore(scoreRef.current);
+            if (a.size > 1) {
+              newAsteroids.push(makeAsteroid(a.x, a.y, a.size - 1));
+              newAsteroids.push(makeAsteroid(a.x, a.y, a.size - 1));
+            }
+            break;
+          }
+        }
+        if (!destroyed) newAsteroids.push(a);
+      }
+      asteroidsRef.current = newAsteroids;
+      bulletsRef.current = bulletsRef.current.filter((b) => b.life > 0);
+
+      // Asteroid hits the ship.
+      if (s.invuln <= 0) {
+        for (const a of asteroidsRef.current) {
+          if (Math.hypot(a.x - s.x, a.y - s.y) < a.r + SHIP_R * 0.7) {
+            hitShip();
+            break;
+          }
+        }
+      }
+
+      // Cleared the wave → next, bigger wave.
+      if (asteroidsRef.current.length === 0 && statusRef.current === 'playing') {
+        levelRef.current += 1;
+        spawnWave(3 + levelRef.current);
+      }
+    };
+
+    const draw = () => {
+      // Space
+      const bg = ctx.createLinearGradient(0, 0, 0, H);
+      bg.addColorStop(0, '#0b1220');
+      bg.addColorStop(1, '#0f172a');
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, W, H);
+
+      // Stars
+      ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
+      for (const st of stars) {
+        ctx.beginPath();
+        ctx.arc(st.x, st.y, st.r, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      // Asteroids
+      ctx.strokeStyle = '#94a3b8';
+      ctx.lineWidth = 2;
+      for (const a of asteroidsRef.current) {
+        ctx.save();
+        ctx.translate(a.x, a.y);
+        ctx.rotate(a.rot);
+        ctx.fillStyle = 'rgba(148, 163, 184, 0.18)';
+        ctx.beginPath();
+        for (let i = 0; i < a.verts.length; i += 1) {
+          const ang = (i / a.verts.length) * Math.PI * 2;
+          const rr = a.r * a.verts[i];
+          const px = Math.cos(ang) * rr;
+          const py = Math.sin(ang) * rr;
+          if (i === 0) ctx.moveTo(px, py);
+          else ctx.lineTo(px, py);
+        }
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      // Bullets
+      ctx.fillStyle = '#22d3ee';
+      ctx.shadowColor = 'rgba(34, 211, 238, 0.9)';
+      ctx.shadowBlur = 8;
+      for (const b of bulletsRef.current) {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, 3, 0, Math.PI * 2);
+        ctx.fill();
+      }
+      ctx.shadowBlur = 0;
+
+      // Ship (blinks while invulnerable)
+      const s = shipRef.current;
+      const blink = s.invuln > 0 && Math.floor(s.invuln / 6) % 2 === 0;
+      if (!blink) {
+        ctx.save();
+        ctx.translate(s.x, s.y);
+        ctx.rotate(s.angle);
+        // engine flame
+        if (ctrlRef.current.thrust) {
+          ctx.fillStyle = '#f97316';
+          ctx.beginPath();
+          ctx.moveTo(-5, SHIP_R * 0.7);
+          ctx.lineTo(0, SHIP_R * 1.5);
+          ctx.lineTo(5, SHIP_R * 0.7);
+          ctx.closePath();
+          ctx.fill();
+        }
+        // body
+        ctx.strokeStyle = '#5eead4';
+        ctx.fillStyle = 'rgba(94, 234, 212, 0.18)';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        ctx.moveTo(0, -SHIP_R);
+        ctx.lineTo(SHIP_R * 0.75, SHIP_R);
+        ctx.lineTo(0, SHIP_R * 0.5);
+        ctx.lineTo(-SHIP_R * 0.75, SHIP_R);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        ctx.restore();
+      }
+    };
+
+    const loop = () => {
+      if (statusRef.current === 'playing') update();
+      draw();
+      raf = requestAnimationFrame(loop);
+    };
+    raf = requestAnimationFrame(loop);
+    return () => cancelAnimationFrame(raf);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [status]);
+
+  // ===================== THE MENU =====================
+  if (status === 'menu') {
+    return (
+      <div className="app-shell menu-shell">
+        <div className="menu-panel">
+          <p className="eyebrow">Premium Arcade</p>
+          <h1>
+            Aster<span className="accent">oids</span>
+          </h1>
+          <div className="menu-bird">🚀</div>
+          <p className="menu-copy">Pick a player or add a new one, then press Start!</p>
+
+          <div className="players">
+            {names.length > 0 ? (
+              names.map((n) => (
+                <div key={n} className={`player-chip ${selectedName === n ? 'selected' : ''}`}>
+                  <button
+                    type="button"
+                    className="player-chip-main"
+                    onClick={() => setSelectedName(n)}
+                  >
+                    <span className="avatar">{n.charAt(0).toUpperCase()}</span>
+                    <span className="player-name">{n}</span>
+                    <span className="chip-best">🏆 {scores[n] || 0}</span>
+                  </button>
+                  <button
+                    type="button"
+                    className="player-chip-remove"
+                    aria-label={`Remove ${n}`}
+                    onClick={() => removeName(n)}
+                  >
+                    ×
+                  </button>
+                </div>
+              ))
+            ) : (
+              <p className="empty">No players yet — add one below.</p>
+            )}
+          </div>
+
+          <div className="add-row">
+            <input
+              value={nameInput}
+              onChange={(e) => setNameInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && addName()}
+              type="text"
+              maxLength={16}
+              placeholder="Add a new name"
+            />
+            <button className="add-button" onClick={addName} disabled={!nameInput.trim()}>
+              + Add
+            </button>
+          </div>
+
+          <button
+            className="button-primary button-full"
+            onClick={startGame}
+            disabled={!selectedName}
+          >
+            ▶ Start game
+          </button>
+
+          {selectedName && (
+            <p className="best-line">
+              Playing as <strong>{selectedName}</strong> · 🏆 Best {scores[selectedName] || 0}
+            </p>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  // ===================== THE GAME =====================
+  const hold = (key: 'left' | 'right' | 'thrust' | 'fire', down: boolean) => () => {
+    ctrlRef.current[key] = down;
+  };
+
+  return (
+    <div className="app-shell">
+      <header className="game-bar">
+        <span className="player-tag">🚀 {username}</span>
+        <button className="stop-button" onClick={stopGame}>
+          ■ Stop
+        </button>
+      </header>
+
+      <div className="score-strip">
+        <div className="score-chip">
+          <span>Score</span>
+          <strong>{score}</strong>
+        </div>
+        <div className="score-chip">
+          <span>Lives</span>
+          <strong>{'🚀'.repeat(lives) || '—'}</strong>
+        </div>
+        <div className="score-chip">
+          <span>Best</span>
+          <strong>{Math.max(best, score)}</strong>
+        </div>
+      </div>
+
+      <div className="board-stage">
+        <div className="board-frame">
+          <canvas
+            ref={canvasRef}
+            className="game-canvas"
+            style={{ aspectRatio: `${W} / ${H}` }}
+          />
+
+          {status === 'over' && (
+            <div className="overlay">
+              <div className="overlay-card">
+                <p className="overlay-eyebrow">Game over</p>
+                <h2>{score >= best && score > 0 ? 'New best! 🎉' : 'Good flying!'}</h2>
+                <div className="overlay-score">
+                  <div>
+                    <span>Score</span>
+                    <strong>{score}</strong>
+                  </div>
+                  <div>
+                    <span>Best</span>
+                    <strong>{Math.max(best, score)}</strong>
+                  </div>
+                </div>
+                <div className="overlay-actions">
+                  <button className="button-primary" onClick={startGame}>
+                    ↻ Play again
+                  </button>
+                  <button className="button-secondary" onClick={stopGame}>
+                    ‹ Menu
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* On-screen controls — hold to turn/thrust, tap to shoot (great on phones). */}
+      <div className="controls">
+        <button
+          className="ctrl-btn"
+          aria-label="Turn left"
+          onPointerDown={hold('left', true)}
+          onPointerUp={hold('left', false)}
+          onPointerLeave={hold('left', false)}
+          onPointerCancel={hold('left', false)}
+        >
+          ↺
+        </button>
+        <button
+          className="ctrl-btn"
+          aria-label="Thrust"
+          onPointerDown={hold('thrust', true)}
+          onPointerUp={hold('thrust', false)}
+          onPointerLeave={hold('thrust', false)}
+          onPointerCancel={hold('thrust', false)}
+        >
+          🔥
+        </button>
+        <button
+          className="ctrl-btn"
+          aria-label="Turn right"
+          onPointerDown={hold('right', true)}
+          onPointerUp={hold('right', false)}
+          onPointerLeave={hold('right', false)}
+          onPointerCancel={hold('right', false)}
+        >
+          ↻
+        </button>
+        <button
+          className="ctrl-btn fire"
+          aria-label="Shoot"
+          onPointerDown={hold('fire', true)}
+          onPointerUp={hold('fire', false)}
+          onPointerLeave={hold('fire', false)}
+          onPointerCancel={hold('fire', false)}
+        >
+          ●
+        </button>
+      </div>
+
+      <p className="hint">← → turn · ↑ thrust · Space shoot · screen wraps around!</p>
+    </div>
+  );
+}
+
+export default App;

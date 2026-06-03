@@ -16,7 +16,7 @@
     "tagline": "Stack falling blocks, clear lines.",
     "icon": "🧱",
     "accent": ["#f59e0b", "#ef4444"],
-    "status": "soon",
+    "status": "ready",
     "devPort": 4174,
     "difficulty": "Medium",
     "folder": "Tetris"
@@ -35,10 +35,10 @@
   {
     "id": "pong",
     "name": "Pong",
-    "tagline": "Classic paddle duel to eleven.",
+    "tagline": "Classic paddle duel vs the computer.",
     "icon": "🏓",
     "accent": ["#10b981", "#0ea5e9"],
-    "status": "soon",
+    "status": "ready",
     "devPort": 4176,
     "difficulty": "Easy",
     "folder": "Pong"

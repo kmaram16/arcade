@@ -75,6 +75,174 @@
   backdrop-filter: blur(6px);
 }
 
+/* Right side of the hero: language button + live pill. */
+.hero-actions {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--glass-bg-strong);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  font-size: 15px;
+  line-height: 1;
+  box-shadow: var(--glass-shadow);
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.lang-btn:hover {
+  background: rgba(255, 255, 255, 0.85);
+  transform: translateY(-1px);
+  box-shadow: 0 12px 26px rgba(31, 38, 135, 0.22);
+}
+
+.lang-btn-label {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* ---- First-visit language picker ---- */
+.lang-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgba(15, 23, 42, 0.42);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  animation: lang-fade 0.2s ease;
+}
+
+.lang-modal {
+  width: min(460px, 100%);
+  padding: clamp(24px, 4vw, 36px);
+  text-align: center;
+  border-radius: var(--radius-lg);
+  /* Mostly opaque so the picker stays readable over the busy grid even in
+     browsers that don't support backdrop-filter. */
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  box-shadow: var(--glass-shadow-lg);
+  animation: lang-pop 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.lang-globe {
+  font-size: 46px;
+  line-height: 1;
+}
+
+.lang-title {
+  margin: 12px 0 6px;
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-size: clamp(22px, 4vw, 28px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.lang-sub {
+  margin: 0 0 22px;
+  font-size: 14px;
+  color: var(--muted);
+}
+
+.lang-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.lang-option {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 16px;
+  border-radius: 16px;
+  border: 1.5px solid var(--glass-border);
+  background: var(--glass-bg-soft);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  text-align: left;
+  transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.lang-option:hover {
+  transform: translateY(-2px);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--glass-shadow);
+}
+
+.lang-option.current {
+  border-color: #818cf8;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.18);
+}
+
+.lang-badge {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  display: grid;
+  place-items: center;
+  border-radius: 11px;
+  color: #fff;
+  font-size: 15px;
+  font-weight: 800;
+  line-height: 1;
+  box-shadow: 0 5px 12px rgba(15, 23, 42, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.lang-name {
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--ink);
+}
+
+/* Arabic (and any RTL language): mirror the reading direction. */
+[dir='rtl'] .hero-copy,
+[dir='rtl'] .apps-head p {
+  text-align: right;
+}
+
+@keyframes lang-fade {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes lang-pop {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.97);
+  }
+}
+
+@media (max-width: 380px) {
+  .lang-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lang-overlay,
+  .lang-modal {
+    animation: none;
+  }
+}
+
 /* ---- Toolbar ---- */
 .toolbar {
   display: flex;
@@ -304,6 +472,42 @@
   border-radius: 6px;
   background: rgba(255, 255, 255, 0.55);
   border: 1px solid var(--glass-border);
+}
+
+/* ---- Streaming apps section ---- */
+.apps-panel {
+  margin-top: 22px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: clamp(22px, 3vw, 36px);
+  border-radius: var(--radius-lg);
+  background: var(--glass-bg);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+.apps-head h2 {
+  margin: 0 0 6px;
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-size: clamp(24px, 4vw, 34px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.accent.stream {
+  background: linear-gradient(120deg, #e50914, #a855f7);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.apps-head p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--muted);
 }
 
 @media (max-width: 560px) {

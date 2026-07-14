@@ -18,6 +18,9 @@ import data from './games.json';
 
 export type GameStatus = 'ready' | 'soon';
 
+/** Tiles are either playable games or streaming apps (shown in their own row). */
+export type GameKind = 'game' | 'app';
+
 export type Game = {
   id: string;
   name: string;
@@ -28,10 +31,14 @@ export type Game = {
   status: GameStatus;
   /** Local dev-server port for this game's standalone project. */
   devPort: number;
-  /** Difficulty of building the game, shown as a tag. */
-  difficulty: 'Easy' | 'Medium' | 'Hard';
+  /** Difficulty of building the game, shown as a tag. Omitted for apps. */
+  difficulty?: 'Easy' | 'Medium' | 'Hard';
   /** Sibling folder name that holds the game's project. */
   folder: string;
+  /** 'game' (default) or 'app' for the streaming apps. */
+  kind?: GameKind;
+  /** Tag shown on app tiles in place of difficulty (e.g. "Streaming"). */
+  category?: string;
   /** Optional explicit production URL; falls back to the dev URL otherwise. */
   buildUrl?: string;
 };
@@ -40,5 +47,18 @@ export const GAMES = data as unknown as Game[];
 
 /** The URL the launcher opens for a given game. */
 export function gameUrl(game: Game): string {
-  return game.buildUrl ?? `http://localhost:${game.devPort}`;
+  // Production (the deployed arcade): every game ships under the SAME origin as
+  // the dashboard, at <id>/ relative to it (built by scripts/build-all.mjs). A
+  // truly relative path (no leading slash) resolves against wherever the
+  // dashboard was served — so it works the same at the domain root (vercel.app,
+  // a custom domain) AND under a sub-path (e.g. GitHub Pages' /arcade/).
+  if (import.meta.env.PROD) {
+    return game.buildUrl ?? `${game.id}/`;
+  }
+  // Dev: each game is its own Vite server on its own port. Use the same host the
+  // dashboard was loaded from (localhost on this PC, or the PC's LAN IP when
+  // opened from another device) so links hit the PC running the servers.
+  const host =
+    typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+  return game.buildUrl ?? `http://${host}:${game.devPort}`;
 }

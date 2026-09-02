@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { LANGS, RTL_LANGS, STR, initialLang, saveLang, type Lang } from './i18n';
+import { startGamepad, bridgeGamepadToKeys } from './gamepad';
 
 // ===== The playing field =====
 const COLS = 10; // how many columns wide
@@ -118,7 +120,14 @@ function roundedRect(
 }
 
 function App() {
+  const [lang, setLang] = useState<Lang>(initialLang);
+  const s = STR[lang];
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+
+  // Latest action closures, so the gamepad loop (set up once) always calls the
+  // current handlers without capturing stale state.
+  const actionsRef = useRef<{ start: () => void; exit: () => void } | null>(null);
 
   // The whole game state lives in refs so the fast game loop always sees the latest.
   const boardRef = useRef<Cell[][]>(emptyBoard());
@@ -290,8 +299,120 @@ function App() {
     lockPiece();
   };
 
-  const startGame = () => {
-    const name = selectedName || username;
+  // ===== Touch: swipe on the board =====
+  // Drag sideways to slide the piece, drag down to soft drop,
+  // flick down to slam it, and tap to rotate.
+  const gestureRef = useRef<{
+    startX: number;
+    startY: number;
+    startT: number;
+    lastX: number;
+    lastY: number;
+    step: number;
+    dragged: boolean;
+  } | null>(null);
+
+  const onBoardPointerDown = (e: React.PointerEvent) => {
+    if (statusRef.current !== 'playing') return;
+    const rect = canvasRef.current?.getBoundingClientRect();
+    // One cell of finger travel = one column, so the piece tracks the thumb.
+    const step = Math.max(18, rect ? rect.width / COLS : CELL);
+    gestureRef.current = {
+      startX: e.clientX,
+      startY: e.clientY,
+      startT: e.timeStamp,
+      lastX: e.clientX,
+      lastY: e.clientY,
+      step,
+      dragged: false
+    };
+    e.currentTarget.setPointerCapture(e.pointerId);
+  };
+
+  const onBoardPointerMove = (e: React.PointerEvent) => {
+    const g = gestureRef.current;
+    if (!g || statusRef.current !== 'playing') return;
+
+    while (Math.abs(e.clientX - g.lastX) >= g.step) {
+      const dir = e.clientX > g.lastX ? 1 : -1;
+      move(dir);
+      g.lastX += dir * g.step;
+      g.dragged = true;
+    }
+
+    while (e.clientY - g.lastY >= g.step) {
+      softDrop();
+      g.lastY += g.step;
+      g.dragged = true;
+    }
+    // Dragging back up doesn't lift the piece, but keep the anchor at the finger.
+    if (e.clientY < g.lastY) g.lastY = e.clientY;
+  };
+
+  const onBoardPointerUp = (e: React.PointerEvent) => {
+    const g = gestureRef.current;
+    gestureRef.current = null;
+    if (!g || statusRef.current !== 'playing') return;
+    const dx = e.clientX - g.startX;
+    const dy = e.clientY - g.startY;
+    const dt = Math.max(e.timeStamp - g.startT, 1);
+    // A quick flick straight down slams the piece home.
+    if (dy > g.step * 2 && Math.abs(dy) > Math.abs(dx) * 1.5 && dy / dt > 0.6) {
+      hardDrop();
+      return;
+    }
+    // A tap that never dragged anywhere = rotate.
+    if (!g.dragged && Math.hypot(dx, dy) < 14 && dt < 300) rotate();
+  };
+
+  const onBoardPointerCancel = () => {
+    gestureRef.current = null;
+  };
+
+  // ===== Touch: press-and-hold on the control pad =====
+  const repeatRef = useRef({ timeout: 0, interval: 0 });
+
+  const stopRepeat = () => {
+    window.clearTimeout(repeatRef.current.timeout);
+    window.clearInterval(repeatRef.current.interval);
+    repeatRef.current = { timeout: 0, interval: 0 };
+  };
+
+  useEffect(() => stopRepeat, []);
+
+  // Fires on press (no tap delay), then keeps firing while the button is held.
+  const holdProps = (fn: () => void, repeatMs = 60) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      e.preventDefault();
+      stopRepeat();
+      fn();
+      repeatRef.current.timeout = window.setTimeout(() => {
+        repeatRef.current.interval = window.setInterval(fn, repeatMs);
+      }, 170);
+    },
+    onPointerUp: stopRepeat,
+    onPointerLeave: stopRepeat,
+    onPointerCancel: stopRepeat,
+    // Pointer presses are handled above; detail 0 means Enter/Space on a focused
+    // button, which fires no pointer event at all.
+    onClick: (e: React.MouseEvent) => {
+      if (e.detail === 0) fn();
+    }
+  });
+
+  // Fires once on press — no repeat (rotate/slam shouldn't machine-gun).
+  const tapProps = (fn: () => void) => ({
+    onPointerDown: (e: React.PointerEvent) => {
+      e.preventDefault();
+      fn();
+    },
+    onClick: (e: React.MouseEvent) => {
+      if (e.detail === 0) fn();
+    }
+  });
+
+  const startGame = (nameOverride?: string) => {
+    const name = nameOverride || selectedName || username;
     if (!name) return;
     setUsername(name);
     boardRef.current = emptyBoard();
@@ -309,6 +430,15 @@ function App() {
   const stopGame = () => {
     statusRef.current = 'menu';
     setStatus('menu');
+  };
+
+  // Start straight from a controller: if there's no profile yet, spin up a guest
+  // one so a pad user is never stuck at the mouse-only menu.
+  const padStart = () => {
+    const name = selectedName || username || names[0] || 'Player 1';
+    if (!names.includes(name)) saveNames([name, ...names]);
+    setSelectedName(name);
+    startGame(name);
   };
 
   // Keyboard controls.
@@ -348,6 +478,48 @@ function App() {
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Keep the document language + direction (RTL for Arabic) in sync.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL_LANGS.includes(lang) ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  // Console gamepad — continuous play: D-pad/stick and face buttons fire the
+  // SAME keys the keyboard handler already understands, so gameplay is identical.
+  // A = rotate (ArrowUp), B = hard drop (Space).
+  useEffect(() => {
+    const stop = bridgeGamepadToKeys({
+      left: 'ArrowLeft',
+      right: 'ArrowRight',
+      down: 'ArrowDown',
+      up: 'ArrowUp',
+      A: 'ArrowUp',
+      B: ' '
+    });
+    return stop;
+  }, []);
+
+  // Console gamepad — menu flow: Start begins/restarts the game, Back exits to
+  // the menu. (A/B stay free for rotate/drop above, so nothing double-fires.)
+  useEffect(() => {
+    const stop = startGamepad({
+      onButton: (b) => {
+        const a = actionsRef.current;
+        if (!a) return;
+        const st = statusRef.current;
+        if (b === 'start') {
+          if (st === 'menu' || st === 'over') a.start();
+        } else if (b === 'back') {
+          if (st === 'playing' || st === 'over') a.exit();
+        }
+      }
+    });
+    return stop;
+  }, []);
+
+  // Publish the freshest handlers for the gamepad loop each render.
+  actionsRef.current = { start: padStart, exit: stopGame };
 
   // How fast pieces fall — faster as the level goes up.
   const dropMs = () => Math.max(110, 650 - (levelRef.current - 1) * 55);
@@ -458,12 +630,29 @@ function App() {
     return (
       <div className="app-shell menu-shell">
         <div className="menu-panel">
-          <p className="eyebrow">Premium Arcade</p>
+          <div className="hero-side">
+            <select
+              className="lang-select"
+              value={lang}
+              onChange={(e) => {
+                setLang(e.target.value as Lang);
+                saveLang(e.target.value as Lang);
+              }}
+              aria-label={s.langLabel}
+            >
+              {LANGS.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="eyebrow">{s.eyebrow}</p>
           <h1>
             Tet<span className="accent">ris</span>
           </h1>
           <div className="menu-bird">🧱</div>
-          <p className="menu-copy">Pick a player or add a new one, then press Start!</p>
+          <p className="menu-copy">{s.menuCopy}</p>
 
           <div className="players">
             {names.length > 0 ? (
@@ -481,7 +670,7 @@ function App() {
                   <button
                     type="button"
                     className="player-chip-remove"
-                    aria-label={`Remove ${n}`}
+                    aria-label={s.remove(n)}
                     onClick={() => removeName(n)}
                   >
                     ×
@@ -489,7 +678,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <p className="empty">No players yet — add one below.</p>
+              <p className="empty">{s.noPlayers}</p>
             )}
           </div>
 
@@ -500,24 +689,24 @@ function App() {
               onKeyDown={(e) => e.key === 'Enter' && addName()}
               type="text"
               maxLength={16}
-              placeholder="Add a new name"
+              placeholder={s.addName}
             />
             <button className="add-button" onClick={addName} disabled={!nameInput.trim()}>
-              + Add
+              {s.add}
             </button>
           </div>
 
           <button
             className="button-primary button-full"
-            onClick={startGame}
+            onClick={() => startGame()}
             disabled={!selectedName}
           >
-            ▶ Start game
+            {s.startGame}
           </button>
 
           {selectedName && (
             <p className="best-line">
-              Playing as <strong>{selectedName}</strong> · 🏆 Best {scores[selectedName] || 0}
+              {s.playingAs} <strong>{selectedName}</strong> · 🏆 {s.best} {scores[selectedName] || 0}
             </p>
           )}
         </div>
@@ -531,26 +720,32 @@ function App() {
       <header className="game-bar">
         <span className="player-tag">🧱 {username}</span>
         <button className="stop-button" onClick={stopGame}>
-          ■ Stop
+          {s.stop}
         </button>
       </header>
 
       <div className="score-strip">
         <div className="score-chip">
-          <span>Score</span>
+          <span>{s.score}</span>
           <strong>{score}</strong>
         </div>
         <div className="score-chip">
-          <span>Lines</span>
+          <span>{s.lines}</span>
           <strong>{lines}</strong>
         </div>
         <div className="score-chip">
-          <span>Best</span>
+          <span>{s.best}</span>
           <strong>{Math.max(best, score)}</strong>
         </div>
       </div>
 
-      <div className="board-stage">
+      <div
+        className="board-stage"
+        onPointerDown={onBoardPointerDown}
+        onPointerMove={onBoardPointerMove}
+        onPointerUp={onBoardPointerUp}
+        onPointerCancel={onBoardPointerCancel}
+      >
         <div className="board-frame">
           <canvas
             ref={canvasRef}
@@ -561,24 +756,24 @@ function App() {
           {status === 'over' && (
             <div className="overlay">
               <div className="overlay-card">
-                <p className="overlay-eyebrow">Game over</p>
-                <h2>{score >= best && score > 0 ? 'New best! 🎉' : 'Nice run!'}</h2>
+                <p className="overlay-eyebrow">{s.gameOver}</p>
+                <h2>{score >= best && score > 0 ? s.newBest : s.niceRun}</h2>
                 <div className="overlay-score">
                   <div>
-                    <span>Score</span>
+                    <span>{s.score}</span>
                     <strong>{score}</strong>
                   </div>
                   <div>
-                    <span>Lines</span>
+                    <span>{s.lines}</span>
                     <strong>{lines}</strong>
                   </div>
                 </div>
                 <div className="overlay-actions">
-                  <button className="button-primary" onClick={startGame}>
-                    ↻ Play again
+                  <button className="button-primary" onClick={() => startGame()}>
+                    {s.playAgain}
                   </button>
                   <button className="button-secondary" onClick={stopGame}>
-                    ‹ Menu
+                    {s.menu}
                   </button>
                 </div>
               </div>
@@ -589,24 +784,25 @@ function App() {
 
       {/* On-screen controls so it works on phones and tablets too. */}
       <div className="controls">
-        <button className="ctrl-btn" onClick={() => move(-1)} aria-label="Left">
+        <button className="ctrl-btn" {...holdProps(() => move(-1))} aria-label={s.ctrlLeft}>
           ◀
         </button>
-        <button className="ctrl-btn" onClick={rotate} aria-label="Rotate">
+        <button className="ctrl-btn" {...tapProps(rotate)} aria-label={s.ctrlRotate}>
           ⟳
         </button>
-        <button className="ctrl-btn" onClick={() => move(1)} aria-label="Right">
+        <button className="ctrl-btn" {...holdProps(() => move(1))} aria-label={s.ctrlRight}>
           ▶
         </button>
-        <button className="ctrl-btn" onClick={softDrop} aria-label="Down">
+        <button className="ctrl-btn" {...holdProps(softDrop, 50)} aria-label={s.ctrlDown}>
           ▼
         </button>
-        <button className="ctrl-btn drop" onClick={hardDrop} aria-label="Drop">
+        <button className="ctrl-btn drop" {...tapProps(hardDrop)} aria-label={s.ctrlDrop}>
           ⤓
         </button>
       </div>
 
-      <p className="hint">← → move · ↑ rotate · ↓ soft drop · Space hard drop</p>
+      <p className="hint hint-keys">{s.hintKeys}</p>
+      <p className="hint hint-touch">{s.hintTouch}</p>
     </div>
   );
 }

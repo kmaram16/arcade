@@ -1,0 +1,523 @@
+.app-shell {
+  width: min(560px, 100%);
+  margin: 0 auto;
+  /* Definite height (not min-height) so the 3D view shrinks to keep the control
+     pad on screen. Learned the hard way on Tetris, where the pad fell below the
+     fold on phones and the buttons were unreachable. */
+  height: 100vh;
+  height: 100dvh;
+  padding: clamp(10px, 3vw, 20px) clamp(12px, 4vw, 16px);
+  display: flex;
+  flex-direction: column;
+  gap: clamp(6px, 1.6vw, 12px);
+}
+
+/* ===================== MENU ===================== */
+.menu-shell {
+  display: grid;
+  place-items: center;
+}
+
+.menu-panel {
+  width: 100%;
+  max-height: calc(100dvh - 32px);
+  overflow-y: auto;
+  text-align: center;
+  padding: clamp(20px, 5vw, 34px);
+  border-radius: 26px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+.eyebrow {
+  margin: 0 0 4px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #2563eb;
+}
+
+.menu-panel h1 {
+  margin: 0;
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-size: clamp(30px, 9vw, 44px);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.accent {
+  background: linear-gradient(120deg, #2563eb, #c98f4e);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.menu-hero {
+  font-size: 60px;
+  line-height: 1;
+  margin: 12px 0 8px;
+  filter: drop-shadow(0 8px 14px rgba(0, 0, 0, 0.18));
+}
+
+.menu-copy {
+  margin: 0 0 16px;
+  color: var(--muted);
+  font-size: 14.5px;
+  line-height: 1.5;
+}
+
+.players {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.player-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--glass-bg-soft);
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.player-chip.selected {
+  border-color: #2563eb;
+  background: rgba(37, 99, 235, 0.12);
+}
+
+.player-chip-main {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  border-radius: 12px;
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+}
+
+.avatar {
+  width: 30px;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #2563eb, #c98f4e);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+}
+
+.player-name {
+  flex: 1;
+  text-align: left;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.chip-best {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.player-chip-remove {
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 10px;
+  background: rgba(239, 68, 68, 0.12);
+  color: #dc2626;
+  font-size: 18px;
+  cursor: pointer;
+  line-height: 1;
+}
+
+.empty {
+  margin: 0;
+  font-size: 13px;
+  color: var(--muted);
+}
+
+.add-row {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.add-row input {
+  flex: 1;
+  min-width: 0;
+  padding: 11px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.7);
+  font: inherit;
+  font-size: 14px;
+}
+
+.add-button {
+  padding: 0 14px;
+  border-radius: 12px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.7);
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.add-button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.button-primary {
+  padding: 13px 18px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+  cursor: pointer;
+  box-shadow: 0 12px 26px rgba(37, 99, 235, 0.35);
+}
+
+.button-primary:disabled {
+  opacity: 0.45;
+  box-shadow: none;
+  cursor: default;
+}
+
+.button-full {
+  width: 100%;
+}
+
+.button-secondary {
+  padding: 13px 18px;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: rgba(255, 255, 255, 0.65);
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.best-line {
+  margin: 10px 0 0;
+  font-size: 12.5px;
+  color: var(--muted);
+}
+
+/* ===================== GAME ===================== */
+.game-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.player-tag {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid var(--glass-border);
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.bar-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.chip-button {
+  padding: 8px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.stop-button {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(239, 68, 68, 0.4);
+  background: rgba(239, 68, 68, 0.14);
+  color: #dc2626;
+  font-weight: 700;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.score-strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.score-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 0;
+  padding: 8px 6px;
+  border-radius: 14px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(12px) saturate(130%);
+  -webkit-backdrop-filter: blur(12px) saturate(130%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+
+.score-chip span {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.score-chip strong {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* How close Petey is — fills up as you gain on him. */
+.chase-meter {
+  position: relative;
+  height: 26px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--glass-bg-soft);
+  border: 1px solid var(--glass-border);
+}
+
+.chase-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #60a5fa, #f97316);
+  transition: width 0.15s linear;
+}
+
+.chase-label {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 800;
+  color: #0f172a;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+}
+
+/* The 3D view */
+.stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  border-radius: 22px;
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.game-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Overlay */
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgba(15, 23, 42, 0.32);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  padding: 16px;
+}
+
+.overlay-card {
+  width: 100%;
+  max-width: 320px;
+  text-align: center;
+  padding: 22px;
+  border-radius: 22px;
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(140%);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow-lg);
+}
+
+.overlay-eyebrow {
+  margin: 0 0 2px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.overlay-card h2 {
+  margin: 0 0 14px;
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-size: 24px;
+}
+
+.overlay-score {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.overlay-score div {
+  display: flex;
+  flex-direction: column;
+  padding: 10px 6px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.overlay-score span {
+  font-size: 10.5px;
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.overlay-score strong {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.overlay-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+/* On-screen pad */
+.controls {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.ctrl-btn {
+  touch-action: none;
+  -webkit-touch-callout: none;
+  padding: 13px 0;
+  border-radius: 14px;
+  border: 1px solid var(--glass-border);
+  background: var(--glass-bg-strong);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #334155;
+  font-size: 19px;
+  cursor: pointer;
+  box-shadow: var(--glass-shadow);
+  transition: transform 0.1s ease, background 0.1s ease;
+}
+
+.ctrl-btn:active {
+  transform: translateY(1px);
+  background: linear-gradient(135deg, #2563eb, #1d4ed8);
+  color: #fff;
+}
+
+.hint {
+  margin: 0;
+  text-align: center;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.hint-touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .hint-keys {
+    display: none;
+  }
+
+  .hint-touch {
+    display: block;
+  }
+
+  .ctrl-btn {
+    padding: 17px 0;
+    font-size: 21px;
+  }
+}
+
+@media (max-height: 620px) {
+  .hint {
+    display: none;
+  }
+}
+
+/* Phone held sideways: bars left, pad right, 3D view gets the full height. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .app-shell {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr) minmax(0, 0.8fr);
+    grid-template-rows: auto auto 1fr;
+    grid-template-areas:
+      'bar   stage controls'
+      'strip stage controls'
+      'meter stage controls';
+    gap: 6px 10px;
+  }
+
+  .game-bar {
+    grid-area: bar;
+  }
+
+  .score-strip {
+    grid-area: strip;
+    grid-template-columns: 1fr;
+  }
+
+  .chase-meter {
+    grid-area: meter;
+    align-self: start;
+  }
+
+  .stage {
+    grid-area: stage;
+  }
+
+  .controls {
+    grid-area: controls;
+    grid-template-columns: repeat(2, 1fr);
+    align-content: center;
+  }
+}

@@ -1,8 +1,10 @@
 .app-shell {
   width: min(460px, 100%);
   margin: 0 auto;
-  min-height: 100vh;
-  min-height: 100dvh;
+  /* A definite height (not min-height) so the board can shrink to keep the
+     control pad on screen instead of pushing it below the fold. */
+  height: 100vh;
+  height: 100dvh;
   padding: clamp(10px, 3vw, 24px) clamp(12px, 4vw, 16px);
   display: flex;
   flex-direction: column;
@@ -315,9 +317,10 @@
 
 .board-frame {
   position: relative;
-  /* Board is tall (10 wide x 20 high). Size it to fit the screen height,
-     reserving room for the bars, control pad and hint. */
-  height: min(100%, calc((100dvh - 290px)));
+  /* Board is tall (10 wide x 20 high). It fills whatever height the flex row
+     leaves over once the bars, pad and hint have taken theirs. */
+  height: 100%;
+  max-height: 100%;
   aspect-ratio: 10 / 20;
   max-width: 100%;
   border-radius: 22px;
@@ -477,9 +480,15 @@
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 8px;
+  touch-action: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .ctrl-btn {
+  /* Held down, not clicked — the browser must not hijack the press. */
+  touch-action: none;
+  -webkit-touch-callout: none;
   padding: 14px 0;
   border-radius: 14px;
   border: 1px solid var(--glass-border);
@@ -509,8 +518,85 @@
   color: var(--muted);
 }
 
+/* Show the swipe hint on touch screens and the keyboard hint everywhere else. */
+.hint-touch {
+  display: none;
+}
+
+@media (pointer: coarse) {
+  .hint-keys {
+    display: none;
+  }
+
+  .hint-touch {
+    display: block;
+  }
+
+  /* Thumb-sized targets on phones. */
+  .ctrl-btn {
+    padding: 18px 0;
+    font-size: 22px;
+  }
+}
+
+/* No vertical room for hints at all. */
 @media (max-height: 620px) {
   .hint {
     display: none;
   }
+}
+
+/* Phone held sideways: a 10x20 board stacked above a pad leaves the board
+   unplayably small, so put the bars and pad either side of it instead. */
+@media (orientation: landscape) and (max-height: 560px) {
+  .app-shell {
+    width: 100%;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    grid-template-rows: auto 1fr;
+    grid-template-areas:
+      'bar   board controls'
+      'strip board controls';
+    gap: 8px 12px;
+  }
+
+  .game-bar {
+    grid-area: bar;
+    align-self: start;
+  }
+
+  .score-strip {
+    grid-area: strip;
+    grid-template-columns: 1fr;
+    align-content: start;
+  }
+
+  .board-stage {
+    grid-area: board;
+  }
+
+  .controls {
+    grid-area: controls;
+    grid-template-columns: repeat(2, 1fr);
+    align-content: center;
+  }
+}
+
+/* Language selector + hero side cluster (shared arcade pattern). */
+.hero-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lang-select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.65));
+  background: var(--glass-bg-strong, rgba(255, 255, 255, 0.68));
+  color: var(--ink, #0f172a);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
 }

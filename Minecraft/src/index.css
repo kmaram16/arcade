@@ -1,0 +1,29 @@
+:root {
+  color-scheme: dark;
+  font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+}
+
+body {
+  overflow: hidden;
+  background: #9ad0ff;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+}

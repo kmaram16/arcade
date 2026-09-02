@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import './App.css';
 import { GAMES, gameUrl, type Game } from './games';
+import { ConsoleArt } from './ConsoleArt';
+import { Social } from './Social';
 import {
   LANGS,
   RTL_LANGS,
@@ -14,7 +16,60 @@ import {
   type Lang
 } from './i18n';
 
-type Filter = 'all' | 'ready' | 'soon';
+type Filter = 'all' | 'ready' | 'streaming';
+
+// A believable "people playing" count for a static site: a per-game base
+// popularity (hashed from its id) gently oscillating over time. Not real users —
+// there is no backend — but it makes the arcade feel alive and refreshes ~10s.
+function livePlayers(seed: string, tick: number): number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) {
+    h ^= seed.charCodeAt(i);
+    h = Math.imul(h, 16777619);
+  }
+  const base = 5 + (Math.abs(h) % 28);
+  const wave = Math.sin((tick + (Math.abs(h) % 100)) / 3) * 5;
+  const jitter = (Math.abs(Math.imul(h ^ tick, 2654435761)) % 7) - 3;
+  return Math.max(1, Math.round(base + wave + jitter));
+}
+
+const PLAYING: Record<Lang, string> = {
+  es: 'jugando ahora',
+  en: 'playing now',
+  pt: 'jogando agora',
+  fr: 'jouent',
+  de: 'spielen gerade',
+  it: 'stanno giocando',
+  zh: '人在玩',
+  ja: '人がプレイ中',
+  ar: 'يلعبون الآن'
+};
+
+// "Press here" nudge shown by the players pill until you've set your name.
+const PRESS_HERE: Record<Lang, string> = {
+  es: '¡Presiona aquí!',
+  en: 'Tap here!',
+  pt: 'Toque aqui!',
+  fr: 'Appuie ici !',
+  de: 'Hier tippen!',
+  it: 'Tocca qui!',
+  zh: '点这里！',
+  ja: 'ここを押して！',
+  ar: '!اضغط هنا'
+};
+
+// Mandatory name gate shown on entry (so everyone has a name for presence + chat).
+const GATE: Record<Lang, { title: string; sub: string; ph: string; btn: string }> = {
+  es: { title: '¿Cómo te llamas?', sub: 'Pon tu nombre para entrar al arcade y poder chatear.', ph: 'Tu nombre', btn: 'Entrar' },
+  en: { title: 'What is your name?', sub: 'Enter your name to get into the arcade and chat.', ph: 'Your name', btn: 'Enter' },
+  pt: { title: 'Qual é o seu nome?', sub: 'Ponha seu nome para entrar no arcade e conversar.', ph: 'Seu nome', btn: 'Entrar' },
+  fr: { title: 'Comment tu t’appelles ?', sub: 'Mets ton nom pour entrer dans l’arcade et discuter.', ph: 'Ton nom', btn: 'Entrer' },
+  de: { title: 'Wie heißt du?', sub: 'Gib deinen Namen ein, um in die Arcade zu kommen und zu chatten.', ph: 'Dein Name', btn: 'Los' },
+  it: { title: 'Come ti chiami?', sub: 'Metti il tuo nome per entrare nell’arcade e chattare.', ph: 'Il tuo nome', btn: 'Entra' },
+  zh: { title: '你叫什么名字？', sub: '输入名字即可进入街机并聊天。', ph: '你的名字', btn: '进入' },
+  ja: { title: '名前は？', sub: '名前を入れてアーケードに入り、チャットしよう。', ph: 'あなたの名前', btn: '入る' },
+  ar: { title: 'ما اسمك؟', sub: 'اكتب اسمك للدخول إلى الأركيد والدردشة.', ph: 'اسمك', btn: 'دخول' }
+};
 
 function App() {
   const [query, setQuery] = useState('');
@@ -57,11 +112,46 @@ function App() {
 
   const readyCount = useMemo(() => GAMES.filter((g) => g.status === 'ready').length, []);
 
+  // Live "people playing" ticker — refreshes every 10s.
+  const [tick, setTick] = useState(() => Math.floor(Date.now() / 12000));
+  useEffect(() => {
+    const id = window.setInterval(() => setTick(Math.floor(Date.now() / 12000)), 10000);
+    return () => window.clearInterval(id);
+  }, []);
+  // People panel (opens from the players pill): real presence + chat + calls. It
+  // owns the realtime connection and reports the live count back for the pill.
+  const [socialOpen, setSocialOpen] = useState(false);
+  const [pCount, setPCount] = useState(1);
+  const [pConn, setPConn] = useState(false);
+  // Everyone must set a name to enter the arcade (used for presence + chat).
+  const [name, setName] = useState(() => {
+    try {
+      return localStorage.getItem('arcade.name') || '';
+    } catch {
+      return '';
+    }
+  });
+  const [nameInput, setNameInput] = useState('');
+  const saveName = (v: string) => {
+    const n = v.trim().slice(0, 20);
+    if (!n) return;
+    try {
+      localStorage.setItem('arcade.name', n);
+    } catch {
+      /* ignore */
+    }
+    setName(n);
+  };
+  // Only the REAL count of people connected right now (no inflated estimate).
+  const players = pCount;
+  void pConn;
+  void tick;
+
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase();
     return GAMES.filter((game) => {
       if (filter === 'ready' && game.status !== 'ready') return false;
-      if (filter === 'soon' && game.status !== 'soon') return false;
+      if (filter === 'streaming' && game.kind !== 'app') return false;
       if (!q) return true;
       return (
         game.name.toLowerCase().includes(q) || game.tagline.toLowerCase().includes(q)
@@ -96,7 +186,7 @@ function App() {
             background: `linear-gradient(135deg, ${game.accent[0]}, ${game.accent[1]})`
           }}
         >
-          <span aria-hidden>{game.icon}</span>
+          {game.art ? <ConsoleArt kind={game.art} /> : <span aria-hidden>{game.icon}</span>}
         </div>
         <div className="game-body">
           <div className="game-title-row">
@@ -143,7 +233,12 @@ function App() {
               <span aria-hidden>🌐</span>
               <span className="lang-btn-label">{currentLabel}</span>
             </button>
-            <span className="pill">● {s.live(readyCount)}</span>
+            <span className="pill-wrap">
+              <button className="pill players-pill" onClick={() => setSocialOpen(true)} title={PLAYING[lang]}>
+                👥 {players} {PLAYING[lang]}
+              </button>
+              {!name && <span className="press-hint">☝ {PRESS_HERE[lang]}</span>}
+            </span>
           </div>
         </div>
 
@@ -161,7 +256,7 @@ function App() {
             />
           </label>
           <div className="filters" role="tablist" aria-label={s.filterAll}>
-            {(['all', 'ready', 'soon'] as Filter[]).map((value) => (
+            {(['all', 'streaming'] as Filter[]).map((value) => (
               <button
                 key={value}
                 role="tab"
@@ -169,7 +264,7 @@ function App() {
                 className={`filter-tab ${filter === value ? 'active' : ''}`}
                 onClick={() => setFilter(value)}
               >
-                {value === 'all' ? s.filterAll : value === 'ready' ? s.filterReady : s.filterSoon}
+                {value === 'all' ? s.filterAll : value === 'ready' ? s.filterReady : s.streaming}
               </button>
             ))}
           </div>
@@ -198,6 +293,40 @@ function App() {
           </div>
           <div className="game-grid">{apps.map(renderCard)}</div>
         </section>
+      )}
+
+      <Social
+        open={socialOpen}
+        onClose={() => setSocialOpen(false)}
+        onCount={(n, c) => {
+          setPCount(n);
+          setPConn(c);
+        }}
+        name={name}
+        lang={lang}
+      />
+
+      {!pickerOpen && !name && (
+        <div className="namegate-overlay" role="dialog" aria-modal="true">
+          <div className="namegate-card">
+            <div className="namegate-emoji" aria-hidden>👋</div>
+            <h2>{GATE[lang].title}</h2>
+            <p>{GATE[lang].sub}</p>
+            <div className="namegate-row">
+              <input
+                autoFocus
+                value={nameInput}
+                onChange={(e) => setNameInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && saveName(nameInput)}
+                placeholder={GATE[lang].ph}
+                maxLength={20}
+              />
+              <button onClick={() => saveName(nameInput)} disabled={!nameInput.trim()}>
+                {GATE[lang].btn}
+              </button>
+            </div>
+          </div>
+        </div>
       )}
 
       {pickerOpen && (

@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { LANGS, RTL_LANGS, STR, initialLang, saveLang, type Lang } from './i18n';
+import { startGamepad, bridgeGamepadToKeys } from './gamepad';
 
 // ===== The playing field =====
 const W = 600;
@@ -87,7 +89,13 @@ function makeAsteroid(x: number, y: number, size: number): Asteroid {
 }
 
 function App() {
+  const [lang, setLang] = useState<Lang>(initialLang);
+  const s = STR[lang];
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Latest action closures, so the gamepad loop (set up once) always calls the
+  // current handlers without capturing stale state.
+  const actionsRef = useRef<{ start: () => void; exit: () => void } | null>(null);
 
   const shipRef = useRef<Ship>({ x: W / 2, y: H / 2, vx: 0, vy: 0, angle: 0, invuln: 0 });
   const bulletsRef = useRef<Bullet[]>([]);
@@ -199,32 +207,16 @@ function App() {
     }
   };
 
-  // Throw out a burst of colored sparks at (x, y) — the explosion effect.
-  const spawnParticles = (x: number, y: number, color: string, count: number) => {
-    for (let i = 0; i < count; i += 1) {
-      const a = Math.random() * Math.PI * 2;
-      const sp = Math.random() * 3 + 1;
-      const max = 28 + Math.random() * 22;
-      particlesRef.current.push({
-        x,
-        y,
-        vx: Math.cos(a) * sp,
-        vy: Math.sin(a) * sp,
-        life: max,
-        max,
-        color
-      });
-    }
-  };
-
-  const startGame = () => {
-    const name = selectedName || username;
+  const startGame = (explicitName?: string) => {
+    const name = explicitName || selectedName || username;
     if (!name) return;
     setUsername(name);
     scoreRef.current = 0;
     livesRef.current = START_LIVES;
     levelRef.current = 1;
     bulletsRef.current = [];
+    planetRef.current = null;
+    particlesRef.current = [];
     cooldownRef.current = 0;
     setScore(0);
     setLives(START_LIVES);
@@ -237,6 +229,19 @@ function App() {
   const stopGame = () => {
     statusRef.current = 'menu';
     setStatus('menu');
+  };
+
+  // Start straight from a controller: if there's no profile yet, spin up a guest
+  // one so a pad user is never stuck at the mouse-only menu.
+  const padStart = () => {
+    if (statusRef.current === 'playing') return;
+    let name = selectedName || username;
+    if (!name) {
+      name = names[0] ?? 'Player 1';
+      if (!names.includes(name)) saveNames([name, ...names]);
+      setSelectedName(name);
+    }
+    startGame(name);
   };
 
   const fire = () => {
@@ -273,6 +278,36 @@ function App() {
     return () => {
       window.removeEventListener('keydown', onDown);
       window.removeEventListener('keyup', onUp);
+    };
+  }, []);
+
+  // Keep the document language + direction (RTL for Arabic) in sync.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL_LANGS.includes(lang) ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  // Console gamepad: the stick/D-pad + A/RB drive the ship through synthetic key
+  // events (bridge), while Start begins-or-replays and B/Back exits to the menu.
+  useEffect(() => {
+    const stopBridge = bridgeGamepadToKeys({
+      left: 'ArrowLeft',
+      right: 'ArrowRight',
+      up: 'ArrowUp',
+      A: ' ',
+      RB: ' '
+    });
+    const stopPad = startGamepad({
+      onButton: (b) => {
+        const a = actionsRef.current;
+        if (!a) return;
+        if (b === 'start') a.start();
+        else if (b === 'back' || b === 'B') a.exit();
+      }
+    });
+    return () => {
+      stopBridge();
+      stopPad();
     };
   }, []);
 
@@ -479,17 +514,39 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  // Publish the freshest handlers for the gamepad loop each render.
+  actionsRef.current = { start: padStart, exit: stopGame };
+
+  const langSelect = (
+    <select
+      className="lang-select"
+      value={lang}
+      onChange={(e) => {
+        setLang(e.target.value as Lang);
+        saveLang(e.target.value as Lang);
+      }}
+      aria-label={s.langLabel}
+    >
+      {LANGS.map((l) => (
+        <option key={l.code} value={l.code}>
+          {l.label}
+        </option>
+      ))}
+    </select>
+  );
+
   // ===================== THE MENU =====================
   if (status === 'menu') {
     return (
       <div className="app-shell menu-shell">
         <div className="menu-panel">
-          <p className="eyebrow">Premium Arcade</p>
+          <div className="hero-side">{langSelect}</div>
+          <p className="eyebrow">{s.eyebrow}</p>
           <h1>
-            Aster<span className="accent">oids</span>
+            {s.titlePre}<span className="accent">{s.titleAccent}</span>
           </h1>
           <div className="menu-bird">🚀</div>
-          <p className="menu-copy">Pick a player or add a new one, then press Start!</p>
+          <p className="menu-copy">{s.menuCopy}</p>
 
           <div className="players">
             {names.length > 0 ? (
@@ -507,7 +564,7 @@ function App() {
                   <button
                     type="button"
                     className="player-chip-remove"
-                    aria-label={`Remove ${n}`}
+                    aria-label={s.remove(n)}
                     onClick={() => removeName(n)}
                   >
                     ×
@@ -515,7 +572,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <p className="empty">No players yet — add one below.</p>
+              <p className="empty">{s.noPlayers}</p>
             )}
           </div>
 
@@ -526,24 +583,24 @@ function App() {
               onKeyDown={(e) => e.key === 'Enter' && addName()}
               type="text"
               maxLength={16}
-              placeholder="Add a new name"
+              placeholder={s.addName}
             />
             <button className="add-button" onClick={addName} disabled={!nameInput.trim()}>
-              + Add
+              {s.add}
             </button>
           </div>
 
           <button
             className="button-primary button-full"
-            onClick={startGame}
+            onClick={() => startGame()}
             disabled={!selectedName}
           >
-            ▶ Start game
+            {s.startGame}
           </button>
 
           {selectedName && (
             <p className="best-line">
-              Playing as <strong>{selectedName}</strong> · 🏆 Best {scores[selectedName] || 0}
+              {s.playingAs} <strong>{selectedName}</strong> · 🏆 {s.best} {scores[selectedName] || 0}
             </p>
           )}
         </div>
@@ -560,22 +617,25 @@ function App() {
     <div className="app-shell">
       <header className="game-bar">
         <span className="player-tag">🚀 {username}</span>
-        <button className="stop-button" onClick={stopGame}>
-          ■ Stop
-        </button>
+        <div className="hero-side">
+          {langSelect}
+          <button className="stop-button" onClick={stopGame}>
+            {s.stop}
+          </button>
+        </div>
       </header>
 
       <div className="score-strip">
         <div className="score-chip">
-          <span>Score</span>
+          <span>{s.score}</span>
           <strong>{score}</strong>
         </div>
         <div className="score-chip">
-          <span>Lives</span>
+          <span>{s.lives}</span>
           <strong>{'🚀'.repeat(lives) || '—'}</strong>
         </div>
         <div className="score-chip">
-          <span>Best</span>
+          <span>{s.best}</span>
           <strong>{Math.max(best, score)}</strong>
         </div>
       </div>
@@ -591,24 +651,24 @@ function App() {
           {status === 'over' && (
             <div className="overlay">
               <div className="overlay-card">
-                <p className="overlay-eyebrow">Game over</p>
-                <h2>{score >= best && score > 0 ? 'New best! 🎉' : 'Good flying!'}</h2>
+                <p className="overlay-eyebrow">{s.overEyebrow}</p>
+                <h2>{score >= best && score > 0 ? s.overBest : s.overNice}</h2>
                 <div className="overlay-score">
                   <div>
-                    <span>Score</span>
+                    <span>{s.score}</span>
                     <strong>{score}</strong>
                   </div>
                   <div>
-                    <span>Best</span>
+                    <span>{s.best}</span>
                     <strong>{Math.max(best, score)}</strong>
                   </div>
                 </div>
                 <div className="overlay-actions">
-                  <button className="button-primary" onClick={startGame}>
-                    ↻ Play again
+                  <button className="button-primary" onClick={() => startGame()}>
+                    {s.playAgain}
                   </button>
                   <button className="button-secondary" onClick={stopGame}>
-                    ‹ Menu
+                    {s.menu}
                   </button>
                 </div>
               </div>
@@ -621,7 +681,7 @@ function App() {
       <div className="controls">
         <button
           className="ctrl-btn"
-          aria-label="Turn left"
+          aria-label={s.turnLeft}
           onPointerDown={hold('left', true)}
           onPointerUp={hold('left', false)}
           onPointerLeave={hold('left', false)}
@@ -631,7 +691,7 @@ function App() {
         </button>
         <button
           className="ctrl-btn"
-          aria-label="Thrust"
+          aria-label={s.thrust}
           onPointerDown={hold('thrust', true)}
           onPointerUp={hold('thrust', false)}
           onPointerLeave={hold('thrust', false)}
@@ -641,7 +701,7 @@ function App() {
         </button>
         <button
           className="ctrl-btn"
-          aria-label="Turn right"
+          aria-label={s.turnRight}
           onPointerDown={hold('right', true)}
           onPointerUp={hold('right', false)}
           onPointerLeave={hold('right', false)}
@@ -651,7 +711,7 @@ function App() {
         </button>
         <button
           className="ctrl-btn fire"
-          aria-label="Shoot"
+          aria-label={s.shoot}
           onPointerDown={hold('fire', true)}
           onPointerUp={hold('fire', false)}
           onPointerLeave={hold('fire', false)}
@@ -661,7 +721,7 @@ function App() {
         </button>
       </div>
 
-      <p className="hint">← → turn · ↑ thrust · Space shoot · screen wraps around!</p>
+      <p className="hint">{s.hint}</p>
     </div>
   );
 }

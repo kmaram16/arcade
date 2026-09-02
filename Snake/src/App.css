@@ -558,7 +558,7 @@
 
 .board-frame {
   position: relative;
-  width: min(82vw, 62vh, 520px);
+  width: min(92vw, 70vh, 720px);
   aspect-ratio: 1 / 1;
   border-radius: 28px;
   padding: 12px;
@@ -734,7 +734,7 @@
     display: none;
   }
   .board-frame {
-    width: min(86vw, 52vh, 460px);
+    width: min(94vw, 66vh, 680px);
   }
 }
 
@@ -762,4 +762,27 @@
     animation-duration: 0.001ms !important;
     transition-duration: 0.001ms !important;
   }
+}
+
+@media (max-width: 680px) {
+  .game-hint { display: none; }
+}
+
+/* Language selector + hero side cluster (shared arcade pattern). */
+.hero-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lang-select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.65));
+  background: var(--glass-bg-strong, rgba(255, 255, 255, 0.68));
+  color: var(--ink, #0f172a);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
 }

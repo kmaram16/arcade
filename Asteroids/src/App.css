@@ -311,7 +311,7 @@
 .board-frame {
   position: relative;
   /* Board is wide (600 x 440). Fit it to the screen height when needed. */
-  width: min(100%, calc((100dvh - 300px) * 1.36), 600px);
+  width: min(100%, calc((100dvh - 260px) * 1.36), 840px);
   border-radius: 22px;
   padding: 10px;
   overflow: hidden;
@@ -506,4 +506,8 @@
   .hint {
     display: none;
   }
+}
+
+@media (max-width: 680px) {
+  .hint { display: none; }
 }

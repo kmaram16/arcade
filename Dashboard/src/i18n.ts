@@ -74,7 +74,7 @@ export const STRINGS: Record<Lang, Strings> = {
     live: (n) => `${n} en directo`,
     search: 'Busca juegos y apps',
     filterAll: 'Todos',
-    filterReady: 'Jugables',
+    filterReady: 'Películas',
     filterSoon: 'Próximamente',
     play: 'Jugar ▸',
     open: 'Abrir ▸',
@@ -527,6 +527,17 @@ export const TAGLINES: Record<string, Record<Lang, string>> = {
     ja: '採掘して建築、TNT を爆破して、朝まで眠ろう。',
     ar: 'نقّب وابنِ وفجّر الـ TNT ونم حتى الفجر.'
   },
+  tagkamyar: {
+    es: 'Corre por muchos mundos, salta y huye de Norberto.',
+    en: 'Run through many worlds, jump and flee from Norberto.',
+    pt: 'Corra por muitos mundos, pule e fuja do Norberto.',
+    fr: 'Cours à travers plein de mondes, saute et échappe à Norberto.',
+    de: 'Renne durch viele Welten, spring und flieh vor Norberto.',
+    it: 'Corri per tanti mondi, salta e scappa da Norberto.',
+    zh: '穿越许多世界，跳跃躲避，逃离诺韦托。',
+    ja: 'たくさんの世界を走り抜け、ジャンプしてノルベルトから逃げろ。',
+    ar: 'اركض عبر عوالم كثيرة، اقفز واهرب من نوربرتو.'
+  },
   crash: {
     es: 'Gira, salta y rompe cajas. ¡Atrapa a Norberto!',
     en: 'Spin, jump and smash crates. Catch Norberto!',
@@ -592,6 +603,17 @@ export const TAGLINES: Record<string, Record<Lang, string>> = {
     zh: '电影、剧集和足球。还能创作你自己的影片。',
     ja: '映画、ドラマ、サッカー。自分の映画も作れる。',
     ar: 'أفلام ومسلسلات وكرة قدم. واصنع أفلامك الخاصة.'
+  },
+  infinitecraft: {
+    es: 'Mezcla de todo. Hasta lo imposible.',
+    en: 'Mix anything. Even the impossible.',
+    pt: 'Misture tudo. Até o impossível.',
+    fr: 'Mélange tout. Même l’impossible.',
+    de: 'Misch alles. Sogar das Unmögliche.',
+    it: 'Mescola tutto. Anche l’impossibile.',
+    zh: '万物皆可混合，连不可能也行。',
+    ja: 'なんでも混ぜよう。あり得ないものまで。',
+    ar: 'اخلط أي شيء. حتى المستحيل.'
   }
 };
 

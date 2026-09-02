@@ -41,9 +41,26 @@ export type Game = {
   category?: string;
   /** Optional explicit production URL; falls back to the dev URL otherwise. */
   buildUrl?: string;
+  /** Optional inline console illustration id (see ConsoleArt) shown instead of the emoji. */
+  art?: string;
 };
 
 export const GAMES = data as unknown as Game[];
+
+/** Carry the launcher's chosen language into the game via `?lang=xx`, so games
+ *  that localize (e.g. Infinite Craft) open in the same language the arcade is
+ *  in. In production games share the dashboard's origin (and its localStorage),
+ *  so this is a belt-and-braces hint; in dev each game is a separate origin, so
+ *  the query param is the only channel. Harmless for games that ignore it. */
+function withLang(url: string): string {
+  try {
+    const lang = typeof localStorage !== 'undefined' ? localStorage.getItem('arcade.lang') : null;
+    if (!lang) return url;
+    return `${url}${url.includes('?') ? '&' : '?'}lang=${lang}`;
+  } catch {
+    return url;
+  }
+}
 
 /** The URL the launcher opens for a given game. */
 export function gameUrl(game: Game): string {
@@ -53,12 +70,12 @@ export function gameUrl(game: Game): string {
   // dashboard was served — so it works the same at the domain root (vercel.app,
   // a custom domain) AND under a sub-path (e.g. GitHub Pages' /arcade/).
   if (import.meta.env.PROD) {
-    return game.buildUrl ?? `${game.id}/`;
+    return withLang(game.buildUrl ?? `${game.id}/`);
   }
   // Dev: each game is its own Vite server on its own port. Use the same host the
   // dashboard was loaded from (localhost on this PC, or the PC's LAN IP when
   // opened from another device) so links hit the PC running the servers.
   const host =
     typeof window !== 'undefined' ? window.location.hostname : 'localhost';
-  return game.buildUrl ?? `http://${host}:${game.devPort}`;
+  return withLang(game.buildUrl ?? `http://${host}:${game.devPort}`);
 }

@@ -38,14 +38,17 @@ for (const game of games) {
 
 // Everything we'll launch: the dashboard first, then each available game.
 const tasks = [
-  { label: 'dashboard', cwd: dashboardRoot, port: 4100, command: 'npm run dev:dashboard' },
+  // --host: also listen on the LAN so other devices (phone/tablet on the same
+  // Wi-Fi) can reach the arcade at http://<this-pc-ip>:4100, not just localhost.
+  { label: 'dashboard', cwd: dashboardRoot, port: 4100, command: 'npm run dev:dashboard -- --host' },
   ...runnable.map(({ game, folder }) => ({
     label: game.id,
     cwd: folder,
     port: game.devPort,
     // --no-open: a game opens when you click its tile, not on boot. (Each game's
     // own config keeps open:true so it still auto-opens when run standalone.)
-    command: 'npm run dev -- --no-open'
+    // --host: expose on the LAN (same reason as the dashboard above).
+    command: 'npm run dev -- --no-open --host'
   }))
 ];
 

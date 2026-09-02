@@ -324,7 +324,7 @@
 .board-frame {
   position: relative;
   /* Board is wide (600 x 380). Fit it to the screen height when needed. */
-  width: min(100%, calc((100dvh - 300px) * 1.58), 580px);
+  width: min(100%, calc((100dvh - 260px) * 1.58), 820px);
   border-radius: 22px;
   padding: 10px;
   overflow: hidden;
@@ -516,4 +516,27 @@
   .hint {
     display: none;
   }
+}
+
+@media (max-width: 680px) {
+  .hint { display: none; }
+}
+
+/* Language selector + hero side cluster (shared arcade pattern). */
+.hero-side {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.lang-select {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--glass-border, rgba(255, 255, 255, 0.65));
+  background: var(--glass-bg-strong, rgba(255, 255, 255, 0.68));
+  color: var(--ink, #0f172a);
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
 }

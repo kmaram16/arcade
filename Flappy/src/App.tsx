@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import './App.css';
+import { LANGS, RTL_LANGS, STR, initialLang, saveLang, type Lang } from './i18n';
+import { startGamepad, bridgeGamepadToKeys } from './gamepad';
 
 // ===== The numbers that make the game feel the way it does =====
 // Change these to make the game easier or harder!
@@ -54,7 +56,13 @@ function roundedRect(
 }
 
 function App() {
+  const [lang, setLang] = useState<Lang>(initialLang);
+  const s = STR[lang];
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Latest action closures, so the gamepad loop (set up once) always calls the
+  // current handlers without capturing stale state.
+  const actionsRef = useRef<{ start: () => void; exit: () => void } | null>(null);
 
   // The bird: where it is (y) and how fast it is moving up/down (vy).
   const birdRef = useRef({ y: HEIGHT / 2, vy: 0 });
@@ -136,6 +144,21 @@ function App() {
     setStatus('playing');
   };
 
+  // Start straight from a controller: if there's no player yet, spin up a guest
+  // one so a pad user is never stuck at the mouse-only menu.
+  const padStart = () => {
+    let name = selectedName || username;
+    if (!name) {
+      name = names[0] ?? 'Player 1';
+      if (!names.includes(name)) saveNames([name, ...names]);
+      setSelectedName(name);
+    }
+    setUsername(name);
+    reset();
+    statusRef.current = 'playing';
+    setStatus('playing');
+  };
+
   // Stop the game and go back to the menu.
   const stopGame = () => {
     statusRef.current = 'menu';
@@ -178,6 +201,38 @@ function App() {
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // Keep the document language + direction (RTL for Arabic) in sync.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL_LANGS.includes(lang) ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  // Console gamepad. Flappy is one-button, so we bridge A / D-pad-up to Space:
+  // the game's existing keydown handler then flaps while playing and retries
+  // after a game over. Start/A also begins from the menu, and B/Back exits.
+  useEffect(() => {
+    const stopKeys = bridgeGamepadToKeys({ A: ' ', up: ' ' });
+    const stopPad = startGamepad({
+      onButton: (b) => {
+        const a = actionsRef.current;
+        if (!a) return;
+        const st = statusRef.current;
+        if (b === 'A' || b === 'start') {
+          // Begin from the menu; Start also restarts after a game over.
+          // During play, the A→Space key-bridge already handles flapping.
+          if (st === 'menu') a.start();
+          else if (b === 'start' && st === 'over') a.start();
+        } else if (b === 'B' || b === 'back') {
+          if (st !== 'menu') a.exit();
+        }
+      }
+    });
+    return () => {
+      stopKeys();
+      stopPad();
+    };
   }, []);
 
   // ===== The game loop: this runs about 60 times every second =====
@@ -356,17 +411,40 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [status]);
 
+  // Publish the freshest handlers for the gamepad loop each render.
+  actionsRef.current = {
+    start: padStart,
+    exit: stopGame
+  };
+
   // ===================== THE MENU =====================
   if (status === 'menu') {
     return (
       <div className="app-shell menu-shell">
         <div className="menu-panel">
-          <p className="eyebrow">Premium Arcade</p>
+          <div className="menu-lang-row">
+            <select
+              className="lang-select"
+              value={lang}
+              onChange={(e) => {
+                setLang(e.target.value as Lang);
+                saveLang(e.target.value as Lang);
+              }}
+              aria-label={s.langLabel}
+            >
+              {LANGS.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <p className="eyebrow">{s.eyebrow}</p>
           <h1>
             Flappy <span className="accent">Bird</span>
           </h1>
           <div className="menu-bird">🐤</div>
-          <p className="menu-copy">Pick a player or add a new one, then press Start!</p>
+          <p className="menu-copy">{s.menuCopy}</p>
 
           <div className="players">
             {names.length > 0 ? (
@@ -387,7 +465,7 @@ function App() {
                   <button
                     type="button"
                     className="player-chip-remove"
-                    aria-label={`Remove ${n}`}
+                    aria-label={s.remove(n)}
                     onClick={() => removeName(n)}
                   >
                     ×
@@ -395,7 +473,7 @@ function App() {
                 </div>
               ))
             ) : (
-              <p className="empty">No players yet — add one below.</p>
+              <p className="empty">{s.noPlayers}</p>
             )}
           </div>
 
@@ -406,10 +484,10 @@ function App() {
               onKeyDown={(e) => e.key === 'Enter' && addName()}
               type="text"
               maxLength={16}
-              placeholder="Add a new name"
+              placeholder={s.addNamePlaceholder}
             />
             <button className="add-button" onClick={addName} disabled={!nameInput.trim()}>
-              + Add
+              {s.add}
             </button>
           </div>
 
@@ -418,12 +496,12 @@ function App() {
             onClick={startGame}
             disabled={!selectedName}
           >
-            ▶ Start game
+            {s.startGame}
           </button>
 
           {selectedName && (
             <p className="best-line">
-              Playing as <strong>{selectedName}</strong> · 🏆 Best {scores[selectedName] || 0}
+              {s.playingAs} <strong>{selectedName}</strong> · 🏆 {s.best} {scores[selectedName] || 0}
             </p>
           )}
         </div>
@@ -437,17 +515,17 @@ function App() {
       <header className="game-bar">
         <span className="player-tag">🐤 {username}</span>
         <button className="stop-button" onClick={stopGame}>
-          ■ Stop
+          {s.stop}
         </button>
       </header>
 
       <div className="score-strip">
         <div className="score-chip">
-          <span>Score</span>
+          <span>{s.score}</span>
           <strong>{score}</strong>
         </div>
         <div className="score-chip">
-          <span>Best</span>
+          <span>{s.best}</span>
           <strong>{Math.max(best, score)}</strong>
         </div>
       </div>
@@ -474,24 +552,24 @@ function App() {
               onTouchStart={(e) => e.stopPropagation()}
             >
               <div className="overlay-card">
-                <p className="overlay-eyebrow">Game over</p>
-                <h2>{score >= best && score > 0 ? 'New best! 🎉' : 'Nice try!'}</h2>
+                <p className="overlay-eyebrow">{s.gameOver}</p>
+                <h2>{score >= best && score > 0 ? s.newBest : s.niceTry}</h2>
                 <div className="overlay-score">
                   <div>
-                    <span>Score</span>
+                    <span>{s.score}</span>
                     <strong>{score}</strong>
                   </div>
                   <div>
-                    <span>Best</span>
+                    <span>{s.best}</span>
                     <strong>{Math.max(best, score)}</strong>
                   </div>
                 </div>
                 <div className="overlay-actions">
                   <button className="button-primary" onClick={startGame}>
-                    ↻ Play again
+                    {s.playAgain}
                   </button>
                   <button className="button-secondary" onClick={stopGame}>
-                    ‹ Menu
+                    {s.menu}
                   </button>
                 </div>
               </div>
@@ -500,7 +578,7 @@ function App() {
         </div>
       </div>
 
-      <p className="hint">Click / tap the board · or press Space to flap 🐤</p>
+      <p className="hint">{s.hint}</p>
     </div>
   );
 }

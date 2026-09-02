@@ -1,43 +1,22 @@
-# ---- Dependencies ----
+# dependencies (never commit — huge, and rebuilt with `npm install`)
 node_modules/
-.pnp/
-.pnp.js
 
-# ---- Build output ----
+# build output (rebuilt with the build scripts)
 dist/
 dist-ssr/
-build/
-out/
-*.tsbuildinfo
-
-# ---- Caches ----
-.vite/
-.cache/
-.eslintcache
-coverage/
 *.local
 
-# ---- Environment / secrets ----
-.env
-.env.*
-!.env.example
-
-# ---- Logs ----
-logs/
+# logs
 *.log
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
-pnpm-debug.log*
 
-# ---- Editor / OS ----
-.vscode/*
-!.vscode/extensions.json
-.idea/
+# editor / OS junk
 .DS_Store
 Thumbs.db
-ehthumbs.db
-Desktop.ini
+*.tmp
+*.tmp.*
 
-# ---- Claude Code local state ----
+# personal Claude Code settings (machine-specific)
 .claude/settings.local.json

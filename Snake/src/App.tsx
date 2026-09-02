@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import './App.css';
+import { LANGS, RTL_LANGS, STR, initialLang, saveLang, type Lang } from './i18n';
+import { startGamepad } from './gamepad';
 
 type Point = { x: number; y: number };
 type Direction = 'up' | 'down' | 'left' | 'right';
@@ -197,7 +199,19 @@ function drawBoard(
 }
 
 function App() {
+  const [lang, setLang] = useState<Lang>(initialLang);
+  const s = STR[lang];
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  // Latest action closures, so the gamepad loop (set up once) always calls the
+  // current handlers without capturing stale state.
+  const actionsRef = useRef<{
+    steer: (d: Direction) => void;
+    start: () => void;
+    restart: () => void;
+    pause: () => void;
+    exit: () => void;
+  } | null>(null);
   const directionRef = useRef<Direction>('right');
   const queuedDirectionRef = useRef<Direction | null>(null);
   const scoreRef = useRef(0);
@@ -217,7 +231,7 @@ function App() {
   const [food, setFood] = useState<Point>(foodRef.current);
   const [score, setScore] = useState(0);
   const [status, setStatus] = useState<Status>('idle');
-  const [message, setMessage] = useState('Create a profile to begin.');
+  const [message, setMessage] = useState(s.msgCreate);
 
   useEffect(() => {
     const savedUsers = localStorage.getItem(USER_NAMES_KEY);
@@ -323,6 +337,32 @@ function App() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Keep the document language + direction (RTL for Arabic) in sync.
+  useEffect(() => {
+    document.documentElement.lang = lang;
+    document.documentElement.dir = RTL_LANGS.includes(lang) ? 'rtl' : 'ltr';
+  }, [lang]);
+
+  // Console gamepad: D-pad/stick steers, A/Start begins-or-pauses, B/Back exits.
+  useEffect(() => {
+    const stop = startGamepad({
+      onDir: (d) => actionsRef.current?.steer(d),
+      onButton: (b) => {
+        const a = actionsRef.current;
+        if (!a) return;
+        const st = statusRef.current;
+        if (b === 'A' || b === 'start') {
+          if (st === 'playing' || st === 'paused') a.pause();
+          else if (st === 'over') a.restart();
+          else a.start();
+        } else if (b === 'B' || b === 'back') {
+          if (st !== 'idle') a.exit();
+        }
+      }
+    });
+    return stop;
+  }, []);
+
   useEffect(() => {
     if (status !== 'playing') return;
     const interval = window.setInterval(() => {
@@ -343,7 +383,7 @@ function App() {
       );
       if (collided) {
         setStatus('over');
-        setMessage('Game over.');
+        setMessage(s.msgGameOver);
         updateStats();
         return;
       }
@@ -410,7 +450,7 @@ function App() {
   const createProfile = () => {
     const profileName = profileInput.trim();
     if (!profileName) {
-      setMessage('Enter a profile name first.');
+      setMessage(s.msgEnterName);
       return;
     }
     const nextUsers = users.includes(profileName) ? users : [profileName, ...users];
@@ -425,7 +465,7 @@ function App() {
     setUsername(profileName);
     setSelectedUser(profileName);
     setProfileInput('');
-    setMessage('Profile ready. Press Start to play.');
+    setMessage(s.msgReady);
     setStatus('idle');
     resetBoard();
     setActiveStats(stats[profileName] || INITIAL_STATS);
@@ -441,7 +481,7 @@ function App() {
     if (username === profileName) {
       setUsername('');
       setSelectedUser('');
-      setMessage('Profile removed. Pick or create one to play.');
+      setMessage(s.msgRemoved);
     }
   };
 
@@ -449,34 +489,55 @@ function App() {
     setUsername(profileName);
     setSelectedUser(profileName);
     setProfileInput('');
-    setMessage('Profile loaded. Press Start to play.');
+    setMessage(s.msgLoaded);
     setStatus('idle');
     resetBoard();
   };
 
   const handleStart = () => {
     if (!username) {
-      setMessage('Pick or create a profile before starting.');
+      setMessage(s.msgPick);
       return;
     }
     resetBoard();
     setStatus('playing');
-    setMessage('Use arrow keys, WASD, or swipe to move.');
+    setMessage(s.msgControls);
+  };
+
+  // Start straight from a controller: if there's no profile yet, spin up a guest
+  // one so a pad user is never stuck at the mouse-only menu.
+  const padStart = () => {
+    if (username) {
+      handleStart();
+      return;
+    }
+    const name = users[0] ?? 'Player 1';
+    if (!users.includes(name)) saveUsers([name, ...users]);
+    if (!stats[name]) {
+      const nextStatsMap = { ...stats, [name]: INITIAL_STATS };
+      setStats(nextStatsMap);
+      localStorage.setItem(USER_STATS_KEY, JSON.stringify(nextStatsMap));
+    }
+    setUsername(name);
+    setSelectedUser(name);
+    resetBoard();
+    setStatus('playing');
+    setMessage(s.msgControls);
   };
 
   const togglePause = () => {
     if (statusRef.current === 'playing') {
       setStatus('paused');
-      setMessage('Paused.');
+      setMessage(s.msgPaused);
     } else if (statusRef.current === 'paused') {
       setStatus('playing');
-      setMessage('Back in.');
+      setMessage(s.msgBack);
     }
   };
 
   const exitToDashboard = () => {
     setStatus('idle');
-    setMessage(username ? 'Press Start to play again.' : 'Create a profile to begin.');
+    setMessage(username ? s.msgAgain : s.msgCreate);
   };
 
   const handleTouchStart = (event: React.TouchEvent) => {
@@ -509,32 +570,41 @@ function App() {
 
   const bestScore = activeStats.bestScore;
 
+  // Publish the freshest handlers for the gamepad loop each render.
+  actionsRef.current = {
+    steer: changeDirection,
+    start: padStart,
+    restart: handleStart,
+    pause: togglePause,
+    exit: exitToDashboard
+  };
+
   if (status !== 'idle') {
     return (
       <div className="game-screen">
         <header className="game-bar">
-          <button className="ghost-button" onClick={exitToDashboard} aria-label="Back to dashboard">
-            <span aria-hidden>‹</span> Dashboard
+          <button className="ghost-button" onClick={exitToDashboard} aria-label={s.backToDash}>
+            <span aria-hidden>‹</span> {s.dashboard}
           </button>
           <div className="game-bar-center">
             <span className="player-tag">{username}</span>
           </div>
           <button className="ghost-button" onClick={togglePause}>
-            {status === 'paused' ? 'Resume' : 'Pause'}
+            {status === 'paused' ? s.resume : s.pause}
           </button>
         </header>
 
         <div className="score-strip">
           <div className="score-chip">
-            <span>Score</span>
+            <span>{s.score}</span>
             <strong>{score}</strong>
           </div>
           <div className="score-chip">
-            <span>Best</span>
+            <span>{s.best}</span>
             <strong>{Math.max(bestScore, score)}</strong>
           </div>
           <div className="score-chip">
-            <span>Length</span>
+            <span>{s.length}</span>
             <strong>{snake.length}</strong>
           </div>
         </div>
@@ -550,14 +620,14 @@ function App() {
             {status === 'paused' && (
               <div className="board-overlay">
                 <div className="overlay-card">
-                  <p className="overlay-eyebrow">Paused</p>
-                  <h2>Take a breath</h2>
+                  <p className="overlay-eyebrow">{s.pausedEyebrow}</p>
+                  <h2>{s.pausedTitle}</h2>
                   <div className="overlay-actions">
                     <button className="button-primary" onClick={togglePause}>
-                      Resume
+                      {s.resume}
                     </button>
                     <button className="button-secondary" onClick={exitToDashboard}>
-                      Exit
+                      {s.exit}
                     </button>
                   </div>
                 </div>
@@ -567,24 +637,24 @@ function App() {
             {status === 'over' && (
               <div className="board-overlay">
                 <div className="overlay-card">
-                  <p className="overlay-eyebrow">Game over</p>
-                  <h2>{score > bestScore ? 'New personal best! 🎉' : 'Nice run'}</h2>
+                  <p className="overlay-eyebrow">{s.overEyebrow}</p>
+                  <h2>{score > bestScore ? s.overBest : s.overNice}</h2>
                   <div className="overlay-score">
                     <div>
-                      <span>Score</span>
+                      <span>{s.score}</span>
                       <strong>{score}</strong>
                     </div>
                     <div>
-                      <span>Best</span>
+                      <span>{s.best}</span>
                       <strong>{Math.max(bestScore, score)}</strong>
                     </div>
                   </div>
                   <div className="overlay-actions">
                     <button className="button-primary" onClick={handleStart}>
-                      Play again
+                      {s.playAgain}
                     </button>
                     <button className="button-secondary" onClick={exitToDashboard}>
-                      Exit
+                      {s.exit}
                     </button>
                   </div>
                 </div>
@@ -608,7 +678,7 @@ function App() {
           </button>
         </div>
 
-        <p className="game-hint">Arrow keys / WASD · Space to pause · Swipe on mobile</p>
+        <p className="game-hint">{s.hint}</p>
       </div>
     );
   }
@@ -618,25 +688,42 @@ function App() {
       <section className="panel hero-panel">
         <div className="hero-headline">
           <div>
-            <p className="eyebrow">Premium Arcade</p>
+            <p className="eyebrow">{s.eyebrow}</p>
             <h1>
-              Snake, <span className="accent">refined</span>.
+              {s.heroPre}
+              <span className="accent">{s.heroAccent}</span>
+              {s.heroPost}
             </h1>
-            <p className="hero-copy">
-              Create a profile, jump into a focused fullscreen board, and climb the leaderboard.
-            </p>
+            <p className="hero-copy">{s.heroCopy}</p>
           </div>
-          <span className="pill">● Live</span>
+          <div className="hero-side">
+            <select
+              className="lang-select"
+              value={lang}
+              onChange={(e) => {
+                setLang(e.target.value as Lang);
+                saveLang(e.target.value as Lang);
+              }}
+              aria-label={s.langLabel}
+            >
+              {LANGS.map((l) => (
+                <option key={l.code} value={l.code}>
+                  {l.label}
+                </option>
+              ))}
+            </select>
+            <span className="pill">● {s.live}</span>
+          </div>
         </div>
 
         <div className="dashboard-grid">
           <div className="card profile-card">
             <div className="card-heading">
               <div>
-                <h2>Profiles</h2>
-                <p className="subtext">Select a player or create a new one to save progress.</p>
+                <h2>{s.profiles}</h2>
+                <p className="subtext">{s.profilesSub}</p>
               </div>
-              <span className="meta-pill">{users.length} saved</span>
+              <span className="meta-pill">{s.saved(users.length)}</span>
             </div>
 
             <div className="profile-list">
@@ -653,7 +740,7 @@ function App() {
                     <button
                       type="button"
                       className="profile-chip-remove"
-                      aria-label={`Remove ${user}`}
+                      aria-label={s.remove(user)}
                       onClick={() => deleteProfile(user)}
                     >
                       ×
@@ -661,57 +748,57 @@ function App() {
                   </div>
                 ))
               ) : (
-                <p className="empty-state">No profiles yet — add one below.</p>
+                <p className="empty-state">{s.noProfiles}</p>
               )}
             </div>
 
             <label className="field-label">
-              New username
+              {s.newUsername}
               <input
                 value={profileInput}
                 onChange={(event) => setProfileInput(event.target.value)}
                 onKeyDown={(event) => event.key === 'Enter' && createProfile()}
                 type="text"
                 maxLength={16}
-                placeholder="Type a username"
+                placeholder={s.typeUsername}
               />
             </label>
 
             <button className="button-primary button-full" onClick={createProfile}>
-              Save profile
+              {s.saveProfile}
             </button>
           </div>
 
           <div className="card stats-card">
             <div className="card-heading">
               <div>
-                <h2>{username ? `${username}'s stats` : 'Your stats'}</h2>
-                <p className="subtext">Best runs, totals, and recent scores.</p>
+                <h2>{username ? s.statsMine(username) : s.statsYours}</h2>
+                <p className="subtext">{s.statsSub}</p>
               </div>
-              <span className="meta-pill">{username ? 'Ready' : 'No player'}</span>
+              <span className="meta-pill">{username ? s.ready : s.noPlayer}</span>
             </div>
 
             <div className="stat-grid">
               <div className="stat-cell highlight">
-                <span>Best score</span>
+                <span>{s.bestScore}</span>
                 <strong>{activeStats.bestScore}</strong>
               </div>
               <div className="stat-cell">
-                <span>Games played</span>
+                <span>{s.gamesPlayed}</span>
                 <strong>{activeStats.gamesPlayed}</strong>
               </div>
               <div className="stat-cell">
-                <span>Food eaten</span>
+                <span>{s.foodEaten}</span>
                 <strong>{activeStats.totalFood}</strong>
               </div>
               <div className="stat-cell">
-                <span>Last score</span>
+                <span>{s.lastScore}</span>
                 <strong>{activeStats.lastScore}</strong>
               </div>
             </div>
 
             <div className="leaderboard">
-              <p className="leaderboard-title">Leaderboard</p>
+              <p className="leaderboard-title">{s.leaderboard}</p>
               {leaderboard.length > 0 ? (
                 <ol className="leaderboard-list">
                   {leaderboard.map(([name, s], index) => (
@@ -726,7 +813,7 @@ function App() {
                   ))}
                 </ol>
               ) : (
-                <p className="empty-state small">Play a game to set the first record.</p>
+                <p className="empty-state small">{s.lbEmpty}</p>
               )}
             </div>
           </div>
@@ -734,7 +821,7 @@ function App() {
 
         <div className="action-row">
           <button className="button-primary button-lg" onClick={handleStart} disabled={!username}>
-            ▶ Start game
+            {s.startGame}
           </button>
           <p className="status-copy">{message}</p>
         </div>

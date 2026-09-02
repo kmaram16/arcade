@@ -1,0 +1,19 @@
+{
+  "id": "/arcade/",
+  "name": "El arcade — Kamyar",
+  "short_name": "Arcade",
+  "description": "Minijuegos y consolas retro en un solo menú: Gran Turismo en 3D, Snake, Tetris, Infinite Craft y mucho más. Funciona sin conexión.",
+  "lang": "es",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eaf0ff",
+  "theme_color": "#6366f1",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "maskable" }
+  ]
+}

@@ -1,0 +1,289 @@
+.console {
+  position: relative;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(14px, 3vw, 30px);
+  gap: 16px;
+  overflow: hidden;
+}
+
+/* Ambient console glow behind everything. */
+.console::before {
+  content: '';
+  position: absolute;
+  inset: -30%;
+  z-index: 0;
+  background:
+    radial-gradient(45% 45% at 20% 18%, color-mix(in srgb, var(--accent) 40%, transparent), transparent 60%),
+    radial-gradient(40% 40% at 82% 14%, color-mix(in srgb, var(--accent2) 34%, transparent), transparent 60%),
+    radial-gradient(50% 50% at 70% 90%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 65%);
+  filter: blur(40px);
+}
+
+.console > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* Faint CRT scanlines for the console feel. */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: repeating-linear-gradient(rgba(255, 255, 255, 0.02) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+
+.c-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.c-back {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.c-back:hover {
+  border-color: var(--accent);
+}
+
+.c-brand {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+.c-ps {
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: clamp(18px, 3.4vw, 30px);
+  letter-spacing: -0.01em;
+  color: #fff;
+}
+
+.c-num {
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-weight: 800;
+  font-style: italic;
+  font-size: clamp(24px, 4.6vw, 42px);
+  background: linear-gradient(120deg, var(--accent), var(--accent2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.c-lang {
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.4);
+  color: var(--ink);
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.c-choose {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+
+.c-subhead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.c-players {
+  padding: 6px 12px;
+  border-radius: 999px;
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(74, 222, 128, 0.5);
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+/* ===== PS2 grid ===== */
+.grid {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: clamp(10px, 2vw, 18px);
+  align-content: start;
+  overflow: auto;
+}
+
+.tile {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+  padding: clamp(14px, 2.5vw, 22px);
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: var(--ink);
+  text-align: left;
+  transition: transform 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+.tile.sel {
+  border-color: #fff;
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 2px var(--accent), 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+.tile.soon {
+  opacity: 0.62;
+}
+
+.tile-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 16px;
+  display: grid;
+  place-items: center;
+  font-size: 30px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.tile-name {
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-weight: 700;
+  font-size: clamp(15px, 2vw, 19px);
+}
+
+.tile-tag {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--accent2);
+}
+
+.tile-tag.soon {
+  color: var(--muted);
+}
+
+/* ===== PS3 XMB ===== */
+.skin-ps3 .console,
+.skin-ps3.console {
+  background: #000;
+}
+
+.xmb {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 26px;
+}
+
+.xmb-row {
+  display: flex;
+  gap: clamp(14px, 3vw, 34px);
+  align-items: center;
+  overflow-x: auto;
+  padding: 20px 6px;
+  scrollbar-width: none;
+}
+
+.xmb-row::-webkit-scrollbar {
+  display: none;
+}
+
+.xmb-item {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  opacity: 0.6;
+  transition: transform 0.16s ease, opacity 0.16s ease;
+}
+
+.xmb-item.sel {
+  opacity: 1;
+  transform: scale(1.18);
+  color: #fff;
+}
+
+.xmb-icon {
+  width: 76px;
+  height: 76px;
+  border-radius: 18px;
+  display: grid;
+  place-items: center;
+  font-size: 40px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3);
+}
+
+.xmb-item.sel .xmb-icon {
+  box-shadow: 0 0 0 2px #fff, 0 12px 40px color-mix(in srgb, var(--accent) 60%, transparent);
+}
+
+.xmb-label {
+  font-size: 12px;
+  font-weight: 600;
+  max-width: 96px;
+  text-align: center;
+}
+
+.xmb-caption {
+  text-align: center;
+}
+
+.xmb-caption h2 {
+  margin: 0 0 6px;
+  font-family: 'Sora', 'Inter', sans-serif;
+  font-size: clamp(22px, 4vw, 34px);
+}
+
+.xmb-play {
+  padding: 9px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.14);
+  color: #fff;
+  font-weight: 800;
+  font-size: 15px;
+}
+
+.xmb-play:hover {
+  background: rgba(255, 255, 255, 0.24);
+  border-color: #fff;
+}
+
+.c-hint {
+  margin: 0;
+  text-align: center;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .c-lang {
+    max-width: 130px;
+  }
+}

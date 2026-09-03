@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Arcade KMM — ¡Juega gratis!</title>
+<meta name="description" content="+40 juegos gratis en el navegador. Sin descargas, sin cuentas. Móvil y PC, con mando, en 9 idiomas.">
+<meta property="og:title" content="Arcade KMM — +40 juegos gratis">
+<meta property="og:description" content="Tu sala de recreativos entera en el navegador. Abre y juega.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://kmaram16.github.io/arcade/">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Archivo:wght@400;600;700;800&family=DM+Mono:wght@400;500&display=swap">
+<style>
+  :root{
+    --bg:#0b0720;
+    --panel:#140d2e;
+    --panel2:#1b1240;
+    --line:#2d2158;
+    --magenta:#ff2e88;
+    --cyan:#22e0ff;
+    --amber:#ffcf3f;
+    --green:#5affa8;
+    --text:#f5f0ff;
+    --muted:#a99fce;
+    --shadow:0 0 0 1px var(--line), 0 18px 40px -18px #000;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(1100px 640px at 50% -8%, #2a1560 0%, rgba(42,21,96,0) 55%),
+      radial-gradient(760px 520px at 92% 12%, rgba(34,224,255,.16) 0%, rgba(34,224,255,0) 60%),
+      radial-gradient(760px 520px at 8% 20%, rgba(255,46,136,.16) 0%, rgba(255,46,136,0) 60%),
+      var(--bg);
+    color:var(--text);
+    font-family:"Archivo","Segoe UI",system-ui,sans-serif;
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    padding:28px 16px 40px;
+    -webkit-font-smoothing:antialiased;
+  }
+  body::before{
+    content:"";
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background:
+      linear-gradient(rgba(85,66,150,.10) 1px, transparent 1px) 0 0/44px 44px,
+      linear-gradient(90deg, rgba(85,66,150,.10) 1px, transparent 1px) 0 0/44px 44px;
+    -webkit-mask-image:radial-gradient(120% 80% at 50% 0%, #000 40%, transparent 92%);
+    mask-image:radial-gradient(120% 80% at 50% 0%, #000 40%, transparent 92%);
+  }
+  body::after{
+    content:"";
+    position:fixed; inset:0; z-index:60; pointer-events:none;
+    background:repeating-linear-gradient(0deg, rgba(0,0,0,.20) 0 1px, transparent 1px 3px);
+    mix-blend-mode:multiply; opacity:.55;
+  }
+  .cabinet{position:relative; z-index:1; width:100%; max-width:780px; display:flex; flex-direction:column; gap:26px}
+
+  .marquee{
+    position:relative; border-radius:20px; padding:22px 20px;
+    background:linear-gradient(180deg, var(--panel2), var(--panel));
+    box-shadow:var(--shadow), inset 0 0 60px rgba(255,46,136,.06);
+    text-align:center; overflow:hidden;
+  }
+  .bulbs{display:flex; justify-content:space-between; padding:0 4px}
+  .bulbs span{
+    width:11px; height:11px; border-radius:50%;
+    background:var(--amber); box-shadow:0 0 10px var(--amber), 0 0 20px rgba(255,207,63,.6);
+    animation:blink 1.1s steps(1,end) infinite;
+  }
+  .bulbs span:nth-child(even){background:var(--magenta); box-shadow:0 0 10px var(--magenta),0 0 20px rgba(255,46,136,.6); animation-delay:.55s}
+  .eyebrow{font-family:"DM Mono",monospace; letter-spacing:.42em; text-transform:uppercase; font-size:11px; color:var(--cyan); margin:16px 0 6px; text-shadow:0 0 12px rgba(34,224,255,.7)}
+  .title{
+    font-family:"Bungee",sans-serif; font-weight:400;
+    font-size:clamp(52px, 15vw, 108px); line-height:.92; margin:2px 0 4px; letter-spacing:.01em; color:#fff;
+    text-shadow:0 0 6px #fff, 0 0 22px var(--magenta), 0 0 46px var(--magenta), 0 4px 0 #7a1450;
+  }
+  .title b{color:var(--amber); text-shadow:0 0 6px #fff,0 0 22px var(--amber),0 0 46px var(--amber),0 4px 0 #7a5410}
+  .subtitle{font-family:"Bungee",sans-serif; font-size:clamp(13px,3.6vw,18px); letter-spacing:.24em; color:var(--cyan); text-shadow:0 0 16px rgba(34,224,255,.55); margin-top:2px}
+
+  .tagline{text-align:center; font-size:clamp(16px,4.4vw,21px); font-weight:600; line-height:1.5; text-wrap:balance; color:var(--text); margin:0 auto; max-width:34ch}
+  .tagline em{font-style:normal; color:var(--amber)}
+
+  .coin{
+    display:block; text-decoration:none; text-align:center; border-radius:18px; padding:20px 22px;
+    background:linear-gradient(180deg, #ff3d93, #d3186e);
+    box-shadow:0 0 0 1px rgba(255,255,255,.14), 0 0 34px rgba(255,46,136,.5), 0 16px 30px -14px #000;
+    color:#fff; transition:transform .12s ease, box-shadow .2s ease;
+  }
+  .coin:hover{transform:translateY(-3px); box-shadow:0 0 0 1px rgba(255,255,255,.22), 0 0 46px rgba(255,46,136,.75), 0 20px 36px -14px #000}
+  .coin:focus-visible{outline:3px solid var(--cyan); outline-offset:3px}
+  .coin .play{font-family:"Bungee",sans-serif; font-size:clamp(24px,6.8vw,34px); letter-spacing:.02em; text-shadow:0 2px 0 #8a123f}
+  .coin .url{display:inline-block; margin-top:12px; font-family:"DM Mono",monospace; font-weight:500; font-size:clamp(13px,3.6vw,16px); letter-spacing:.02em; background:rgba(6,3,18,.55); border:1px solid rgba(255,255,255,.2); border-radius:999px; padding:7px 16px; color:#fff}
+  .insert{text-align:center; font-family:"DM Mono",monospace; font-size:12px; letter-spacing:.32em; text-transform:uppercase; color:var(--amber); margin-top:-8px; animation:pulse 1.15s ease-in-out infinite}
+  .insert::before{content:"◉ "; color:var(--green)}
+
+  .badges{display:flex; flex-wrap:wrap; justify-content:center; gap:10px}
+  .badge{font-family:"DM Mono",monospace; font-size:12.5px; letter-spacing:.03em; padding:8px 13px; border-radius:999px; background:var(--panel); border:1px solid var(--line); color:var(--text); display:inline-flex; align-items:center; gap:7px}
+  .badge b{color:var(--cyan); font-weight:500}
+
+  .select-head{display:flex; align-items:center; gap:14px; justify-content:center; font-family:"DM Mono",monospace; text-transform:uppercase; letter-spacing:.34em; font-size:12px; color:var(--muted)}
+  .select-head::before,.select-head::after{content:""; height:1px; flex:1; max-width:120px; background:linear-gradient(90deg,transparent,var(--line))}
+  .select-head::after{transform:scaleX(-1)}
+  .grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(94px,1fr)); gap:11px; margin-top:16px}
+  .tile{
+    aspect-ratio:1/1; border-radius:15px; background:linear-gradient(180deg, var(--panel2), var(--panel));
+    border:1px solid var(--line); display:flex; flex-direction:column; align-items:center; justify-content:center; gap:7px;
+    padding:8px 6px; transition:transform .12s ease, border-color .18s ease, box-shadow .2s ease; text-decoration:none;
+  }
+  .tile .ico{font-size:clamp(26px,7vw,34px); line-height:1; filter:drop-shadow(0 2px 6px rgba(0,0,0,.5))}
+  .tile .name{font-family:"DM Mono",monospace; font-size:10.5px; letter-spacing:.02em; color:var(--muted); text-align:center; line-height:1.2}
+  .tile:hover{transform:translateY(-4px)}
+  .tile:nth-child(3n+1):hover{border-color:var(--magenta); box-shadow:0 0 22px rgba(255,46,136,.45)}
+  .tile:nth-child(3n+2):hover{border-color:var(--cyan); box-shadow:0 0 22px rgba(34,224,255,.45)}
+  .tile:nth-child(3n):hover{border-color:var(--amber); box-shadow:0 0 22px rgba(255,207,63,.45)}
+  .tile:hover .name{color:var(--text)}
+
+  .chars{text-align:center; font-size:15px; color:var(--muted); line-height:1.6; text-wrap:balance}
+  .chars strong{color:var(--text); font-weight:700}
+  .foot{text-align:center; border-top:1px solid var(--line); padding-top:20px; font-family:"DM Mono",monospace; font-size:12px; letter-spacing:.06em; color:var(--muted)}
+  .foot .big{display:block; font-size:14px; color:var(--cyan); margin-bottom:6px; letter-spacing:.14em}
+
+  @keyframes blink{0%,45%{opacity:1}46%,100%{opacity:.22}}
+  @keyframes pulse{0%,100%{opacity:.45}50%{opacity:1}}
+  @media (prefers-reduced-motion:reduce){
+    .bulbs span,.insert{animation:none}
+    .coin,.tile{transition:none}
+  }
+</style>
+</head>
+<body>
+<div class="cabinet">
+
+  <header class="marquee">
+    <div class="bulbs"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+    <p class="eyebrow">Presenta · KMM</p>
+    <h1 class="title">ARC<b>A</b>DE</h1>
+    <p class="subtitle">+40 JUEGOS · 1 CLIC · GRATIS</p>
+    <div class="bulbs"><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+  </header>
+
+  <p class="tagline">Tu sala de recreativos entera en el navegador. Sin descargas, sin cuentas — <em>abres y juegas</em>.</p>
+
+  <a class="coin" href="https://kmaram16.github.io/arcade/">
+    <span class="play">▶ JUGAR AHORA</span>
+    <span class="url">kmaram16.github.io/arcade</span>
+  </a>
+  <p class="insert">Inserta moneda — es gratis</p>
+
+  <div class="badges">
+    <span class="badge">📱 <b>Móvil</b> y PC</span>
+    <span class="badge">🎮 Con <b>mando</b></span>
+    <span class="badge">🌍 <b>9 idiomas</b></span>
+    <span class="badge">💬 <b>Chat</b> y jugar juntos</span>
+    <span class="badge">⚡ <b>Nada</b> que instalar</span>
+  </div>
+
+  <section>
+    <p class="select-head">Selecciona juego</p>
+    <div class="grid">
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🐍</span><span class="name">Snake</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🧱</span><span class="name">Tetris</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🏓</span><span class="name">Pong</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🐤</span><span class="name">Flappy</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">👾</span><span class="name">Space Invaders</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">☄️</span><span class="name">Asteroids</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🧩</span><span class="name">2048</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">💣</span><span class="name">Buscaminas</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🧠</span><span class="name">Simon</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">⚗️</span><span class="name">Infinite Craft</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">⛏️</span><span class="name">Minecraft</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🏎️</span><span class="name">Gran Turismo</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🎮</span><span class="name">GTA San Andreas</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🗺️</span><span class="name">Uncharted</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">⚽</span><span class="name">FIFA</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🕹️</span><span class="name">PS2 · PS3</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">⌨️</span><span class="name">Diario Teclado</span></a>
+      <a class="tile" href="https://kmaram16.github.io/arcade/"><span class="ico">🎬</span><span class="name">Streaming</span></a>
+    </div>
+  </section>
+
+  <p class="chars">Protagonizado por <strong>Kamyar</strong> y <strong>Martina</strong> — con Javier el enmascarado y el villano Norberto.</p>
+
+  <footer class="foot">
+    <span class="big">JUEGA YA · WORLDWIDE</span>
+    kmaram16.github.io/arcade · hecho con ❤ por KMM
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Comparte el KMM Arcade</title>
+<meta name="description" content="Escanea el QR o comparte el enlace para jugar en el KMM Arcade.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bungee&family=Archivo:wght@400;600;700&display=swap">
+<style>
+  :root{
+    --bg:#0b0720; --panel:#140d2e; --panel2:#1b1240; --line:#2d2158;
+    --magenta:#ff2e88; --cyan:#22e0ff; --amber:#ffcf3f; --text:#f5f0ff; --muted:#a99fce;
+    color-scheme:dark;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(900px 520px at 50% -10%, #2a1560 0%, rgba(42,21,96,0) 60%),
+      var(--bg);
+    color:var(--text); font-family:"Archivo","Segoe UI",system-ui,sans-serif;
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:26px 16px;
+  }
+  .card{
+    width:100%; max-width:440px; text-align:center;
+    background:linear-gradient(180deg,var(--panel2),var(--panel));
+    border:1px solid var(--line); border-radius:22px; padding:26px 22px 24px;
+    box-shadow:0 22px 50px -22px #000;
+  }
+  .eyebrow{font-family:"Archivo"; letter-spacing:.3em; text-transform:uppercase; font-size:11px; color:var(--cyan); margin:0 0 4px}
+  h1{font-family:"Bungee",sans-serif; font-weight:400; font-size:clamp(30px,9vw,44px); margin:0; color:#fff;
+     text-shadow:0 0 20px var(--magenta)}
+  .sub{color:var(--muted); font-size:14px; margin:8px 0 20px}
+  .qr{background:#fff; border-radius:16px; padding:14px; display:inline-block; box-shadow:0 0 30px rgba(34,224,255,.25)}
+  .qr img{display:block; width:230px; height:230px; max-width:100%}
+  .scan{font-size:13px; color:var(--muted); margin:12px 0 20px}
+  .url{
+    display:block; font-family:"Archivo",monospace; font-weight:700; font-size:15px; color:#fff;
+    background:rgba(6,3,18,.55); border:1px solid var(--line); border-radius:999px; padding:11px 14px; margin-bottom:14px;
+    word-break:break-all;
+  }
+  .btns{display:flex; flex-direction:column; gap:10px}
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px; text-decoration:none;
+    border:none; border-radius:13px; padding:14px; font-weight:700; font-size:15px; cursor:pointer;
+    font-family:"Archivo",sans-serif;
+  }
+  .btn.wa{background:#25d366; color:#053b1e}
+  .btn.copy{background:linear-gradient(180deg,var(--magenta),#d3186e); color:#fff}
+  .btn.play{background:transparent; color:var(--cyan); border:1px solid var(--line)}
+  .btn:active{transform:translateY(1px)}
+  .foot{margin-top:18px; font-size:12px; color:var(--muted)}
+  #copied{color:var(--amber); font-weight:700; font-size:13px; height:16px; margin-top:8px}
+</style>
+</head>
+<body>
+  <div class="card">
+    <p class="eyebrow">Presenta · KMM</p>
+    <h1>ARCADE</h1>
+    <p class="sub">+40 juegos gratis · sin instalar 🎮</p>
+
+    <div class="qr"><img src="qr.png" alt="Código QR del arcade"></div>
+    <p class="scan">📷 Apunta la cámara del móvil al código para jugar</p>
+
+    <span class="url" id="url">https://kmaram16.github.io/arcade/</span>
+
+    <div class="btns">
+      <a class="btn wa" id="wa" href="#" target="_blank" rel="noopener">💬 Compartir por WhatsApp</a>
+      <button class="btn copy" id="copyBtn">🔗 Copiar el enlace</button>
+      <a class="btn play" href="./">▶ Jugar ahora</a>
+    </div>
+    <div id="copied"></div>
+
+    <p class="foot">Hecho con ❤ por KMM · kmaram16.github.io/arcade</p>
+  </div>
+
+  <script>
+    var link = 'https://kmaram16.github.io/arcade/';
+    var msg = '¡Juega gratis en el KMM Arcade! +40 juegos en tu móvil, sin instalar 🎮 ' + link;
+    document.getElementById('wa').href = 'https://wa.me/?text=' + encodeURIComponent(msg);
+    document.getElementById('copyBtn').addEventListener('click', function(){
+      var done = function(){ document.getElementById('copied').textContent = '¡Copiado! ✓'; };
+      try {
+        navigator.clipboard.writeText(link).then(done, function(){ prompt('Copia el enlace:', link); });
+      } catch (e) { prompt('Copia el enlace:', link); }
+    });
+    if (navigator.share) {
+      var wa = document.getElementById('wa');
+      wa.textContent = '📤 Compartir';
+      wa.href = '#';
+      wa.addEventListener('click', function(ev){ ev.preventDefault(); navigator.share({ title:'KMM Arcade', text:msg, url:link }).catch(function(){}); });
+    }
+  </script>
+</body>
+</html>

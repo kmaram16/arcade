@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cómo subir a Vercel — Arcade KMM</title>
+<meta name="description" content="Guía con dibujos, paso a paso, para poner tu arcade en Vercel.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  :root{
+    --page:#f3f0fb; --page2:#e9e4f7; --ink:#241b3a; --muted:#6b6088;
+    --card:#ffffff; --line:#e0d9f2; --magenta:#ff2e88; --cyan:#1aa5c4; --gold:#ffb020; --green:#12b76a;
+    --scr:#0a0a0a; --scr2:#161616; --scrline:#2a2a2a; --scrtext:#ededed; --scrmuted:#8a8a8a;
+    color-scheme:light;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    background:
+      radial-gradient(900px 500px at 50% -10%, #ffffff 0%, rgba(255,255,255,0) 60%),
+      linear-gradient(180deg, var(--page), var(--page2));
+    color:var(--ink);
+    font-family:"Inter","Segoe UI",system-ui,sans-serif;
+    min-height:100vh; padding:26px 16px 48px; -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:640px; margin:0 auto; display:flex; flex-direction:column; gap:22px}
+  .head{text-align:center; padding:6px 4px 2px}
+  .logo{display:inline-flex; align-items:center; gap:9px; font-family:"Fredoka",sans-serif; font-weight:600; font-size:15px; color:var(--ink)}
+  .logo svg{display:block}
+  h1{font-family:"Fredoka",sans-serif; font-weight:700; font-size:clamp(30px,7.5vw,44px); margin:10px 0 6px; line-height:1.05; text-wrap:balance}
+  .sub{font-size:clamp(15px,3.8vw,18px); color:var(--muted); margin:0; line-height:1.5; text-wrap:balance}
+  .repochip{display:inline-block; margin-top:14px; font-family:"Inter",monospace; font-size:13px; background:#fff; border:1px solid var(--line); border-radius:999px; padding:7px 14px; color:var(--ink); box-shadow:0 6px 16px -10px rgba(36,27,58,.5)}
+  .repochip b{color:var(--magenta)}
+  .step{background:var(--card); border:1px solid var(--line); border-radius:20px; padding:18px 16px 20px; box-shadow:0 18px 40px -26px rgba(36,27,58,.55)}
+  .step-head{display:flex; gap:13px; align-items:flex-start; margin-bottom:15px}
+  .num{flex:none; width:38px; height:38px; border-radius:50%; background:linear-gradient(180deg,#ff4f9c,#e21e78); color:#fff; font-family:"Fredoka",sans-serif; font-weight:700; font-size:19px; display:flex; align-items:center; justify-content:center; box-shadow:0 6px 16px -6px rgba(226,30,120,.7)}
+  .cap{font-size:clamp(15px,3.9vw,17px); line-height:1.5; padding-top:5px}
+  .cap b{color:var(--magenta)}
+  .browser{border-radius:14px; overflow:hidden; background:var(--scr); border:1px solid var(--scrline); box-shadow:0 12px 30px -14px rgba(0,0,0,.6)}
+  .bar{display:flex; align-items:center; gap:9px; padding:10px 12px; background:var(--scr2); border-bottom:1px solid var(--scrline)}
+  .dots{display:flex; gap:6px}
+  .dots i{width:11px; height:11px; border-radius:50%; display:block}
+  .dots i:nth-child(1){background:#ff5f57}
+  .dots i:nth-child(2){background:#febc2e}
+  .dots i:nth-child(3){background:#28c840}
+  .url{flex:1; background:#000; border:1px solid var(--scrline); border-radius:8px; padding:6px 11px; font-family:"Inter",monospace; font-size:12.5px; color:var(--scrmuted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+  .url b{color:#fff; font-weight:500}
+  .screen{position:relative; padding:20px 16px; min-height:150px; color:var(--scrtext); background:radial-gradient(600px 300px at 50% -20%, #1c1c1c 0%, var(--scr) 70%)}
+  .vtri{width:16px; height:14px}
+  .center{display:flex; flex-direction:column; align-items:center; text-align:center; gap:5px}
+  .scr-title{font-family:"Fredoka",sans-serif; font-weight:600; font-size:17px; color:#fff}
+  .scr-note{font-size:12.5px; color:var(--scrmuted); max-width:34ch}
+  .btn{display:inline-flex; align-items:center; gap:8px; border-radius:8px; font-family:"Inter",sans-serif; font-weight:500; font-size:13.5px; padding:9px 15px; border:1px solid transparent; cursor:default}
+  .btn-black{background:#fff; color:#000; font-weight:600}
+  .btn-ghost{background:transparent; color:#fff; border-color:#3a3a3a}
+  .rowlist{display:flex; flex-direction:column; gap:8px; width:100%; max-width:380px; margin:0 auto}
+  .repo-row{display:flex; align-items:center; justify-content:space-between; gap:10px; background:#111; border:1px solid var(--scrline); border-radius:10px; padding:10px 11px}
+  .repo-row.dim{opacity:.4}
+  .repo-name{display:flex; align-items:center; gap:9px; font-size:13px; color:#fff; font-family:"Inter",monospace; overflow:hidden; text-overflow:ellipsis; white-space:nowrap}
+  .gh{width:18px; height:18px; border-radius:50%; background:#fff; flex:none; display:flex; align-items:center; justify-content:center}
+  .field{width:100%; max-width:360px; text-align:left; margin:0 auto 12px}
+  .field label{display:block; font-size:11px; color:var(--scrmuted); margin-bottom:5px}
+  .field .val{background:#111; border:1px solid var(--scrline); border-radius:8px; padding:9px 11px; font-size:13px; color:#fff}
+  .party{font-size:40px; line-height:1}
+  .livechip{display:inline-flex; align-items:center; gap:8px; background:#0b1f16; border:1px solid #17482f; color:#43e08b; border-radius:999px; padding:8px 14px; font-family:"Inter",monospace; font-size:13px; margin-top:4px}
+  .livechip .dot{width:8px; height:8px; border-radius:50%; background:#43e08b; box-shadow:0 0 8px #43e08b}
+  .glow{position:relative; box-shadow:0 0 0 3px var(--gold), 0 0 0 8px rgba(255,176,32,.28); border-radius:9px; animation:ring 1.3s ease-in-out infinite}
+  .tap{position:absolute; font-size:30px; filter:drop-shadow(0 3px 4px rgba(0,0,0,.5)); animation:bob 1.1s ease-in-out infinite; pointer-events:none}
+  .clickbubble{position:absolute; background:var(--gold); color:#3a2600; font-family:"Fredoka",sans-serif; font-weight:700; font-size:11px; padding:3px 9px; border-radius:999px; white-space:nowrap; box-shadow:0 4px 10px -3px rgba(0,0,0,.5)}
+  .clickbubble::after{content:""; position:absolute; left:14px; bottom:-5px; width:10px; height:10px; background:var(--gold); transform:rotate(45deg)}
+  .note{position:absolute; top:10px; right:10px; background:#fff3c4; color:#5c4a00; font-family:"Fredoka",sans-serif; font-weight:600; font-size:11.5px; padding:6px 10px; border-radius:8px; transform:rotate(4deg); box-shadow:0 6px 14px -6px rgba(0,0,0,.5); max-width:130px; line-height:1.3}
+  .footer{text-align:center; padding:8px 8px 0}
+  .footer .big{font-family:"Fredoka",sans-serif; font-weight:700; font-size:20px; color:var(--ink); margin-bottom:8px}
+  .footer p{font-size:14px; color:var(--muted); line-height:1.55; margin:6px 0}
+  .footer a{color:var(--cyan); font-weight:600; text-decoration:none}
+  @keyframes bob{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+  @keyframes ring{0%,100%{box-shadow:0 0 0 3px var(--gold),0 0 0 8px rgba(255,176,32,.28)}50%{box-shadow:0 0 0 3px var(--gold),0 0 0 12px rgba(255,176,32,.12)}}
+  @media (prefers-reduced-motion:reduce){.tap,.glow{animation:none}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="head">
+    <span class="logo">
+      <svg class="vtri" viewBox="0 0 24 21" aria-hidden="true"><path d="M12 0 24 21 0 21Z" fill="#241b3a"/></svg>
+      Vercel
+    </span>
+    <h1>Pon tu arcade online 🚀</h1>
+    <p class="sub">Guía con dibujos — solo 4 pasos. Sigue el dedo amarillo 👆</p>
+    <span class="repochip">Usarás tu repo: <b>arcade-play</b></span>
+  </header>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">1</span>
+      <p class="cap">Abre el navegador y ve a <b>vercel.com/new</b></p>
+    </div>
+    <div class="browser">
+      <div class="bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url glow"><b>vercel.com/new</b></span>
+      </div>
+      <div class="screen center">
+        <span class="tap" style="top:2px; left:50%;">👆</span>
+        <span class="clickbubble" style="top:-2px; left:calc(50% + 26px);">Escribe esto aquí</span>
+        <div class="scr-title" style="margin-top:26px;">Vercel</div>
+        <p class="scr-note">Si te lo pide, entra con tu GitHub.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">2</span>
+      <p class="cap">Busca <b>arcade-play</b> en la lista y pulsa <b>Import</b></p>
+    </div>
+    <div class="browser">
+      <div class="bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">vercel.com/new</span>
+      </div>
+      <div class="screen">
+        <div class="scr-title" style="text-align:center; margin-bottom:14px;">Import Git Repository</div>
+        <div class="rowlist">
+          <div class="repo-row dim">
+            <span class="repo-name"><span class="gh">🐙</span>otro-proyecto</span>
+            <span class="btn btn-ghost">Import</span>
+          </div>
+          <div class="repo-row" style="position:relative;">
+            <span class="repo-name"><span class="gh">🐙</span>kmaram16/arcade-play</span>
+            <span class="btn btn-ghost glow">Import</span>
+            <span class="tap" style="right:-6px; top:30px;">👆</span>
+          </div>
+          <div class="repo-row dim">
+            <span class="repo-name"><span class="gh">🐙</span>otro-repo</span>
+            <span class="btn btn-ghost">Import</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">3</span>
+      <p class="cap">No cambies nada — pulsa el botón grande <b>Deploy</b></p>
+    </div>
+    <div class="browser">
+      <div class="bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">vercel.com/new/…/arcade-play</span>
+      </div>
+      <div class="screen">
+        <span class="note">¡No toques<br>los ajustes! ✋</span>
+        <div class="scr-title" style="margin-bottom:14px;">Configure Project</div>
+        <div class="field"><label>Project Name</label><div class="val">arcade-play</div></div>
+        <div class="field"><label>Framework Preset</label><div class="val">Other</div></div>
+        <div style="position:relative; text-align:center; margin-top:6px;">
+          <span class="btn btn-black glow" style="font-size:15px; padding:11px 26px;">Deploy</span>
+          <span class="tap" style="left:50%; top:34px;">👆</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="step">
+    <div class="step-head">
+      <span class="num">4</span>
+      <p class="cap">Espera unos <b>30 segundos</b>… 🎉 ¡Listo! Pulsa <b>Visit</b> para verlo</p>
+    </div>
+    <div class="browser">
+      <div class="bar">
+        <span class="dots"><i></i><i></i><i></i></span>
+        <span class="url">vercel.com/…/arcade-play</span>
+      </div>
+      <div class="screen center">
+        <span class="party">🎉</span>
+        <div class="scr-title">Congratulations!</div>
+        <span class="livechip"><span class="dot"></span>arcade-play.vercel.app</span>
+        <div style="position:relative; margin-top:12px;">
+          <span class="btn btn-black glow">Visit ↗</span>
+          <span class="tap" style="left:50%; top:32px;">👆</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p class="big">¡Ya está — ahora eres mundial! 🌍</p>
+    <p>Tu arcade estará en un enlace tipo <b>arcade-play.vercel.app</b>.</p>
+    <p>¿Atascado en el paso 1? Truco fácil: abre <a href="https://app.netlify.com/drop">app.netlify.com/drop</a> y arrastra tu carpeta <b>dist</b>. 🪄</p>
+  </footer>
+
+</div>
+</body>
+</html>

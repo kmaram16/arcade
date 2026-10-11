@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PvP KMM — shooter en primera persona gratis (Battle Royale y duelos)</title>
+  <meta name="description" content="PvP KMM: shooter en primera persona gratis hecho por KMM. Salta del avión, coge armas de los suministros y gana en Battle Royale o en duelos 1v1 a 4v4 con amigos. Para Windows." />
+  <meta property="og:title" content="PvP KMM 🔫 — salta, coge armas y gana" />
+  <meta property="og:description" content="Shooter en primera persona gratis: Battle Royale con tormenta, duelos 1v1 a 4v4, suministros que caen del cielo y bots." />
+  <meta property="og:image" content="https://kmaram16.github.io/arcade/pvpkmm/shot1.jpg" />
+  <meta property="og:url" content="https://kmaram16.github.io/arcade/pvpkmm/" />
+  <link rel="canonical" href="https://kmaram16.github.io/arcade/pvpkmm/" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%AB%3C/text%3E%3C/svg%3E" />
+  <style>
+    :root { --bg: #0d1110; --panel: #171d1a; --ink: #eef2ee; --muted: #9aa69f; --accent: #e8a33a; --accent2: #6aa84f; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(1200px 600px at 70% -10%, #2a3a2c 0%, var(--bg) 60%); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+    a.back { color: var(--muted); text-decoration: none; font-size: 14px; }
+    h1 { font-size: clamp(40px, 9vw, 76px); margin: 18px 0 4px; letter-spacing: -0.02em; line-height: 1; }
+    h1 span { color: var(--accent); }
+    .tag { color: var(--muted); font-size: 18px; margin: 0 0 22px; }
+    .hero { border-radius: 16px; overflow: hidden; border: 1px solid #2c3630; box-shadow: 0 30px 60px -30px #000; }
+    .hero img { display: block; width: 100%; height: auto; }
+    .btns { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 24px; border-radius: 12px; font-weight: 800; font-size: 18px; text-decoration: none; }
+    .btn.dl { background: var(--accent); color: #1a1205; }
+    .btn.web { background: #26302a; color: var(--ink); border: 1px solid #3a463e; }
+    .btn.web.off { opacity: .55; pointer-events: none; }
+    .small { color: var(--muted); font-size: 13px; margin: 6px 0 26px; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 26px 0; }
+    .card { background: var(--panel); border: 1px solid #26302a; border-radius: 12px; padding: 16px; }
+    .card b { display: block; font-size: 17px; margin-bottom: 4px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+    .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .shots img { width: 100%; border-radius: 10px; border: 1px solid #26302a; display: block; }
+    h2 { font-size: 22px; margin: 34px 0 10px; }
+    ol, .keys { color: var(--muted); line-height: 1.7; padding-left: 20px; }
+    kbd { background: #222a25; border: 1px solid #3a463e; border-bottom-width: 2px; border-radius: 5px; padding: 1px 6px; color: var(--ink); font-size: 13px; }
+    @media (max-width: 600px) { .shots { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="../">← KMM Arcade</a>
+    <h1>PvP <span>KMM</span></h1>
+    <p class="tag">Salta del avión, coge armas de los suministros y sé el último en pie.</p>
+    <div class="hero"><img src="shot1.jpg" alt="PvP KMM en primera persona en la base militar" /></div>
+
+    <div class="btns">
+      <a class="btn dl" href="https://github.com/kmaram16/pvp-kmm/releases/latest/download/PvP-KMM-Windows.zip">⬇️ Descargar para Windows</a>
+      <a class="btn web off" id="web" href="jugar/">🌐 Jugar en el navegador — próximamente</a>
+    </div>
+    <p class="small">Gratis · 156 MB · Windows 10/11. Descomprime el zip y abre <b>PvP KMM.exe</b>. Si Windows dice "aplicación desconocida", pulsa <b>Más información → Ejecutar de todas formas</b>.</p>
+
+    <div class="grid">
+      <div class="card"><b>✈️ Salto del avión</b><p>Cada partida empieza en un avión. Salta, cae y abre el paracaídas.</p></div>
+      <div class="card"><b>👑 Battle Royale</b><p>10 jugadores, una tormenta morada que se cierra y solo uno gana.</p></div>
+      <div class="card"><b>🥊 Duelo por equipos</b><p>Empieza 1v1 y crece hasta 4v4 cuando se unen tus amigos.</p></div>
+      <div class="card"><b>📦 Suministros</b><p>Las armas caen del cielo con paracaídas. Corre a cogerlas antes que nadie.</p></div>
+    </div>
+
+    <div class="shots">
+      <img src="shot2.jpg" alt="El avión sobre el mapa con la tormenta" loading="lazy" />
+      <img src="shot3.jpg" alt="Bajando en paracaídas sobre la base" loading="lazy" />
+    </div>
+
+    <h2>Controles</h2>
+    <p class="keys"><kbd>W A S D</kbd> moverse · <kbd>Ratón</kbd> mirar · <kbd>Clic</kbd> disparar · <kbd>Clic dcho</kbd> apuntar · <kbd>E</kbd> coger · <kbd>R</kbd> recargar · <kbd>V</kbd> cuchillo · <kbd>Espacio</kbd> saltar / saltar del avión · <kbd>Tab</kbd> marcador · <kbd>Esc</kbd> pausa. También con mando.</p>
+
+    <h2>Jugar con amigos</h2>
+    <ol>
+      <li>En la misma Wi‑Fi: uno pulsa <b>Crear partida</b> y el otro <b>Unirse</b>.</li>
+      <li>Por internet con código y amigos por nombre: muy pronto.</li>
+    </ol>
+  </div>
+  <script>
+    // When the browser version is published at ./jugar/, turn the button on automatically.
+    fetch('jugar/index.html', { method: 'HEAD' }).then(function (r) {
+      if (r.ok) { var b = document.getElementById('web'); b.classList.remove('off'); b.textContent = '🌐 Jugar en el navegador'; }
+    }).catch(function () {});
+  </script>
+</body>
+</html>

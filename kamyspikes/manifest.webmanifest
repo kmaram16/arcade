@@ -1,0 +1,19 @@
+{
+  "id": "/arcade/kamyspikes/",
+  "name": "Kamy Spikes",
+  "short_name": "Kamy Spikes",
+  "description": "Salta los pinchos al ritmo de la música. 5 niveles, modo infinito y editor para crear y compartir tus niveles.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "landscape",
+  "background_color": "#0b1a5c",
+  "theme_color": "#0b1a5c",
+  "categories": ["games"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

@@ -8,8 +8,22 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="description" content="Kamy Spikes — salta los pinchos al ritmo de la música. Crea y comparte tus niveles." />
-    <title>Kamy Spikes</title>
+    <meta name="description" content="Kamy Spikes: juego gratis de saltar pinchos al ritmo de la música, como Geometry Dash. 5 niveles, modo infinito y editor de niveles para crear y compartir. Funciona en el móvil y en el PC." />
+    <title>Kamy Spikes — juego de saltar pinchos gratis (como Geometry Dash)</title>
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Kamy Spikes 🔺 — salta al ritmo" />
+    <meta property="og:description" content="Juego gratis de saltar pinchos al ritmo de la música. 5 niveles, modo infinito y editor para crear y compartir niveles. En el móvil y en el PC." />
+    <meta property="og:url" content="https://kmaram16.github.io/arcade/kamyspikes/" />
+    <meta property="og:image" content="https://kmaram16.github.io/arcade/kamyspikes/icon-512.png" />
+    <link rel="canonical" href="https://kmaram16.github.io/arcade/kamyspikes/" />
+    <script>
+      // App instalable + funciona sin conexión (solo en la web publicada)
+      if ('serviceWorker' in navigator && location.hostname !== 'localhost') {
+        window.addEventListener('load', function () { navigator.serviceWorker.register('sw.js').catch(function () {}) })
+      }
+    </script>
     <script type="module" crossorigin src="./assets/index-BT1ExZX5.js"></script>
     <link rel="stylesheet" crossorigin href="./assets/index-BncxSdUe.css">
     <script type="module">import.meta.url;import("_").catch(()=>1);(async function*(){})().next();if(location.protocol!="file:"){window.__vite_is_modern_browser=true}</script>

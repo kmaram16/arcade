@@ -1,0 +1,20 @@
+html, body { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; background: #0b0f14; }
+#unity-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; background: #0b0f14; outline: none; }
+#carga {
+  position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+  background: radial-gradient(ellipse at center, #26331f 0%, #10160f 55%, #070a07 100%);
+  font-family: "Segoe UI", system-ui, -apple-system, Roboto, "Noto Sans", sans-serif; color: #fff;
+  transition: opacity .5s ease; z-index: 10;
+}
+#carga.fuera { opacity: 0; pointer-events: none; }
+#volver { position: absolute; top: 14px; left: 16px; color: #ffd24a; text-decoration: none; font-weight: 600; font-size: 15px; }
+#volver:hover { text-decoration: underline; }
+.caja { width: min(560px, calc(100% - 32px)); text-align: center; }
+h1 { margin: 0; font-size: clamp(44px, 10vw, 84px); letter-spacing: 2px; font-weight: 900; text-shadow: 0 4px 0 #000, 0 0 30px rgba(255, 210, 74, .25); }
+.sub { margin: 4px 0 26px; color: #ffd24a; font-weight: 600; font-size: 18px; }
+.barra { height: 14px; border-radius: 7px; background: rgba(255, 255, 255, .12); overflow: hidden; border: 1px solid rgba(255, 255, 255, .2); }
+#relleno { height: 100%; width: 0; background: linear-gradient(90deg, #6fcf5a, #ffd24a); transition: width .2s ease; }
+#estado { margin: 12px 0 4px; font-size: 16px; }
+.consejo { margin: 6px 0; opacity: .75; font-size: 14px; }
+.movil { margin: 14px 0 0; padding: 8px 12px; border-radius: 8px; background: rgba(255, 150, 60, .2); color: #ffb36b; font-weight: 700; }
+.error { margin: 14px 0 0; color: #ff7b6b; font-weight: 700; white-space: pre-wrap; }

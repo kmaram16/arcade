@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <title>PvP KMM</title>
+  <meta name="description" content="PvP KMM — shooter militar: Duelo por equipos y Battle Royale contra bots.">
+  <link rel="icon" href="TemplateData/favicon.png">
+  <link rel="stylesheet" href="TemplateData/style.css">
+</head>
+<body>
+  <canvas id="unity-canvas" tabindex="-1"></canvas>
+
+  <div id="carga">
+    <a id="volver" href="../">&larr; Arcade</a>
+    <div class="caja">
+      <h1>PvP KMM</h1>
+      <p id="sub" class="sub">Duelo por equipos · Battle Royale</p>
+      <div class="barra"><div id="relleno"></div></div>
+      <p id="estado">Cargando...</p>
+      <p id="consejo" class="consejo">Haz clic en el juego para usar el ratón · Esc = pausa</p>
+      <p id="movil" class="movil" hidden>Mejor en PC con teclado y ratón</p>
+      <p id="error" class="error" hidden></p>
+    </div>
+  </div>
+
+  <script>
+    (function () {
+      // mismo idioma que el arcade: ?lang=xx, luego localStorage 'arcade.lang', luego el del navegador
+      var TXT = {
+        es: ["Cargando...", "Haz clic en el juego para usar el ratón · Esc = pausa", "Mejor en PC con teclado y ratón", "Duelo por equipos · Battle Royale", "Preparando el mapa...", "No se pudo cargar el juego: "],
+        en: ["Loading...", "Click the game to use the mouse · Esc = pause", "Best on a PC with keyboard and mouse", "Team Duel · Battle Royale", "Building the map...", "The game couldn't load: "],
+        pt: ["Carregando...", "Clique no jogo para usar o mouse · Esc = pausa", "Melhor no PC com teclado e mouse", "Duelo em equipes · Battle Royale", "Preparando o mapa...", "Não foi possível carregar o jogo: "],
+        fr: ["Chargement...", "Clique sur le jeu pour utiliser la souris · Échap = pause", "Mieux sur PC avec clavier et souris", "Duel par équipes · Battle Royale", "Préparation de la carte...", "Le jeu n'a pas pu se charger : "],
+        de: ["Lädt...", "Klicke ins Spiel, um die Maus zu nutzen · Esc = Pause", "Am besten am PC mit Tastatur und Maus", "Team-Duell · Battle Royale", "Karte wird gebaut...", "Das Spiel konnte nicht laden: "],
+        it: ["Caricamento...", "Clicca sul gioco per usare il mouse · Esc = pausa", "Meglio su PC con tastiera e mouse", "Duello a squadre · Battle Royale", "Preparo la mappa...", "Impossibile caricare il gioco: "],
+        zh: ["加载中……", "点击游戏来使用鼠标 · Esc = 暂停", "最好在电脑上用键盘和鼠标玩", "团队对决 · 大逃杀", "正在准备地图……", "游戏无法加载："],
+        ja: ["読み込み中…", "ゲームをクリックしてマウスを使う · Esc = ポーズ", "キーボードとマウスのあるPCがおすすめ", "チーム対戦 · バトルロイヤル", "マップを準備中…", "ゲームを読み込めませんでした："],
+        ar: ["جارٍ التحميل...", "انقر على اللعبة لاستخدام الفأرة · Esc = إيقاف", "الأفضل على الكمبيوتر مع لوحة مفاتيح وفأرة", "مبارزة الفرق · باتل رويال", "جارٍ تجهيز الخريطة...", "تعذر تحميل اللعبة: "]
+      };
+      var lang = "";
+      try { lang = new URLSearchParams(location.search).get("lang") || ""; } catch (e) {}
+      if (!lang) { try { lang = localStorage.getItem("arcade.lang") || ""; } catch (e) {} }
+      if (!lang) lang = (navigator.language || "es");
+      lang = lang.slice(0, 2).toLowerCase();
+      if (!TXT[lang]) lang = "es";
+      var t = TXT[lang];
+      document.documentElement.lang = lang;
+      if (lang === "ar") document.getElementById("carga").dir = "rtl";
+      document.getElementById("estado").textContent = t[0];
+      document.getElementById("consejo").textContent = t[1];
+      document.getElementById("movil").textContent = t[2];
+      document.getElementById("sub").textContent = t[3];
+
+      var ua = navigator.userAgent || "";
+      var movil = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
+      if (movil) document.getElementById("movil").hidden = false;
+
+      var canvas = document.getElementById("unity-canvas");
+      var carga = document.getElementById("carga");
+      var relleno = document.getElementById("relleno");
+      var estado = document.getElementById("estado");
+      var t0 = performance.now();
+
+      var script = document.createElement("script");
+      script.src = "Build/pvpkmm_webgl_build2.loader.js";
+      script.onload = function () {
+        createUnityInstance(canvas, {
+          arguments: [],
+          dataUrl: "Build/pvpkmm_webgl_build2.data.unityweb",
+          frameworkUrl: "Build/pvpkmm_webgl_build2.framework.js.unityweb",
+          codeUrl: "Build/pvpkmm_webgl_build2.wasm.unityweb",
+          streamingAssetsUrl: "StreamingAssets",
+          companyName: "KMM",
+          productName: "PvP KMM",
+          productVersion: "0.1.0",
+          devicePixelRatio: 1   // más fluido en portátiles con pantalla de alta densidad
+        }, function (p) {
+          relleno.style.width = Math.round(p * 100) + "%";
+          if (p >= 0.9) estado.textContent = t[4];
+        }).then(function (inst) {
+          window.unityInstance = inst;
+          window.pvpCargaSegundos = (performance.now() - t0) / 1000;
+          carga.classList.add("fuera");
+          setTimeout(function () { carga.style.display = "none"; }, 600);
+          canvas.focus();
+        }).catch(function (msg) {
+          var e = document.getElementById("error");
+          e.textContent = t[5] + msg;
+          e.hidden = false;
+        });
+      };
+      document.body.appendChild(script);
+    })();
+  </script>
+</body>
+</html>

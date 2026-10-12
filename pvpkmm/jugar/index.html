@@ -2,14 +2,35 @@
 <html lang="es">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="theme-color" content="#0b0f14">
+  <meta name="screen-orientation" content="landscape">
   <title>PvP KMM</title>
-  <meta name="description" content="PvP KMM — shooter militar: Duelo por equipos y Battle Royale contra bots.">
+  <meta name="description" content="PvP KMM — shooter militar: Duelo por equipos y Battle Royale contra bots. En PC y en el móvil.">
   <link rel="icon" href="TemplateData/favicon.png">
   <link rel="stylesheet" href="TemplateData/style.css">
 </head>
 <body>
   <canvas id="unity-canvas" tabindex="-1"></canvas>
+  <div id="pvp-sa" aria-hidden="true"></div>
+
+  <button id="pantalla" type="button" hidden>
+    <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" d="M3 9V3h6M15 3h6v6M21 15v6h-6M9 21H3v-6"/></svg>
+  </button>
+
+  <div id="texto" hidden>
+    <form id="texto-form" autocomplete="off">
+      <label id="texto-tit" for="texto-in"></label>
+      <input id="texto-in" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" enterkeyhint="done">
+      <div class="botones">
+        <button type="button" id="texto-no"></button>
+        <button type="submit" id="texto-ok"></button>
+      </div>
+    </form>
+  </div>
 
   <div id="carga">
     <a id="volver" href="../">&larr; Arcade</a>
@@ -19,7 +40,6 @@
       <div class="barra"><div id="relleno"></div></div>
       <p id="estado">Cargando...</p>
       <p id="consejo" class="consejo">Haz clic en el juego para usar el ratón · Esc = pausa</p>
-      <p id="movil" class="movil" hidden>Mejor en PC con teclado y ratón</p>
       <p id="error" class="error" hidden></p>
     </div>
   </div>
@@ -27,16 +47,17 @@
   <script>
     (function () {
       // mismo idioma que el arcade: ?lang=xx, luego localStorage 'arcade.lang', luego el del navegador
+      // [cargando, consejo PC, consejo móvil, subtítulo, preparando, error, pantalla completa]
       var TXT = {
-        es: ["Cargando...", "Haz clic en el juego para usar el ratón · Esc = pausa", "Mejor en PC con teclado y ratón", "Duelo por equipos · Battle Royale", "Preparando el mapa...", "No se pudo cargar el juego: "],
-        en: ["Loading...", "Click the game to use the mouse · Esc = pause", "Best on a PC with keyboard and mouse", "Team Duel · Battle Royale", "Building the map...", "The game couldn't load: "],
-        pt: ["Carregando...", "Clique no jogo para usar o mouse · Esc = pausa", "Melhor no PC com teclado e mouse", "Duelo em equipes · Battle Royale", "Preparando o mapa...", "Não foi possível carregar o jogo: "],
-        fr: ["Chargement...", "Clique sur le jeu pour utiliser la souris · Échap = pause", "Mieux sur PC avec clavier et souris", "Duel par équipes · Battle Royale", "Préparation de la carte...", "Le jeu n'a pas pu se charger : "],
-        de: ["Lädt...", "Klicke ins Spiel, um die Maus zu nutzen · Esc = Pause", "Am besten am PC mit Tastatur und Maus", "Team-Duell · Battle Royale", "Karte wird gebaut...", "Das Spiel konnte nicht laden: "],
-        it: ["Caricamento...", "Clicca sul gioco per usare il mouse · Esc = pausa", "Meglio su PC con tastiera e mouse", "Duello a squadre · Battle Royale", "Preparo la mappa...", "Impossibile caricare il gioco: "],
-        zh: ["加载中……", "点击游戏来使用鼠标 · Esc = 暂停", "最好在电脑上用键盘和鼠标玩", "团队对决 · 大逃杀", "正在准备地图……", "游戏无法加载："],
-        ja: ["読み込み中…", "ゲームをクリックしてマウスを使う · Esc = ポーズ", "キーボードとマウスのあるPCがおすすめ", "チーム対戦 · バトルロイヤル", "マップを準備中…", "ゲームを読み込めませんでした："],
-        ar: ["جارٍ التحميل...", "انقر على اللعبة لاستخدام الفأرة · Esc = إيقاف", "الأفضل على الكمبيوتر مع لوحة مفاتيح وفأرة", "مبارزة الفرق · باتل رويال", "جارٍ تجهيز الخريطة...", "تعذر تحميل اللعبة: "]
+        es: ["Cargando...", "Haz clic en el juego para usar el ratón · Esc = pausa", "Pon el móvil en horizontal · joystick a la izquierda, botones a la derecha", "Duelo por equipos · Battle Royale", "Preparando el mapa...", "No se pudo cargar el juego: ", "Pantalla completa"],
+        en: ["Loading...", "Click the game to use the mouse · Esc = pause", "Turn your phone sideways · joystick on the left, buttons on the right", "Team Duel · Battle Royale", "Building the map...", "The game couldn't load: ", "Fullscreen"],
+        pt: ["Carregando...", "Clique no jogo para usar o mouse · Esc = pausa", "Vire o celular na horizontal · joystick à esquerda, botões à direita", "Duelo em equipes · Battle Royale", "Preparando o mapa...", "Não foi possível carregar o jogo: ", "Tela cheia"],
+        fr: ["Chargement...", "Clique sur le jeu pour utiliser la souris · Échap = pause", "Tourne ton téléphone à l'horizontale · joystick à gauche, boutons à droite", "Duel par équipes · Battle Royale", "Préparation de la carte...", "Le jeu n'a pas pu se charger : ", "Plein écran"],
+        de: ["Lädt...", "Klicke ins Spiel, um die Maus zu nutzen · Esc = Pause", "Halte dein Handy quer · Joystick links, Tasten rechts", "Team-Duell · Battle Royale", "Karte wird gebaut...", "Das Spiel konnte nicht laden: ", "Vollbild"],
+        it: ["Caricamento...", "Clicca sul gioco per usare il mouse · Esc = pausa", "Gira il telefono in orizzontale · joystick a sinistra, pulsanti a destra", "Duello a squadre · Battle Royale", "Preparo la mappa...", "Impossibile caricare il gioco: ", "Schermo intero"],
+        zh: ["加载中……", "点击游戏来使用鼠标 · Esc = 暂停", "请横过手机 · 左边摇杆，右边按钮", "团队对决 · 大逃杀", "正在准备地图……", "游戏无法加载：", "全屏"],
+        ja: ["読み込み中…", "ゲームをクリックしてマウスを使う · Esc = ポーズ", "スマホを横にしてね · 左にジョイスティック、右にボタン", "チーム対戦 · バトルロイヤル", "マップを準備中…", "ゲームを読み込めませんでした：", "全画面"],
+        ar: ["جارٍ التحميل...", "انقر على اللعبة لاستخدام الفأرة · Esc = إيقاف", "أدر هاتفك أفقيًا · عصا التحكم يسارًا والأزرار يمينًا", "مبارزة الفرق · باتل رويال", "جارٍ تجهيز الخريطة...", "تعذر تحميل اللعبة: ", "ملء الشاشة"]
       };
       var lang = "";
       try { lang = new URLSearchParams(location.search).get("lang") || ""; } catch (e) {}
@@ -47,14 +68,18 @@
       var t = TXT[lang];
       document.documentElement.lang = lang;
       if (lang === "ar") document.getElementById("carga").dir = "rtl";
-      document.getElementById("estado").textContent = t[0];
-      document.getElementById("consejo").textContent = t[1];
-      document.getElementById("movil").textContent = t[2];
-      document.getElementById("sub").textContent = t[3];
 
       var ua = navigator.userAgent || "";
       var movil = /Android|iPhone|iPad|iPod|Mobile/i.test(ua) || (navigator.maxTouchPoints > 1 && /Macintosh/.test(ua));
-      if (movil) document.getElementById("movil").hidden = false;
+      var tactil = movil || !!(window.matchMedia && matchMedia("(pointer: coarse)").matches && navigator.maxTouchPoints > 0);
+      var forzar = null;
+      try { forzar = new URLSearchParams(location.search).get("touch"); } catch (e) {}
+      if (forzar === "1") tactil = true; else if (forzar === "0") tactil = false;
+      if (tactil) document.documentElement.classList.add("tactil");
+
+      document.getElementById("estado").textContent = t[0];
+      document.getElementById("consejo").textContent = tactil ? t[2] : t[1];
+      document.getElementById("sub").textContent = t[3];
 
       var canvas = document.getElementById("unity-canvas");
       var carga = document.getElementById("carga");
@@ -62,32 +87,108 @@
       var estado = document.getElementById("estado");
       var t0 = performance.now();
 
+      // que el navegador no haga zoom, ni desplace la página, ni saque menús al mantener el dedo
+      canvas.addEventListener("contextmenu", function (e) { e.preventDefault(); });
+      ["touchstart", "touchmove", "touchend", "touchcancel"].forEach(function (n) {
+        canvas.addEventListener(n, function (e) { if (e.cancelable) e.preventDefault(); }, { passive: false });
+      });
+      document.addEventListener("gesturestart", function (e) { e.preventDefault(); });
+      document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
+
+      // botón de pantalla completa (en el móvil también intenta girar a horizontal)
+      var bp = document.getElementById("pantalla");
+      var de = document.documentElement;
+      var pedirPC = de.requestFullscreen || de.webkitRequestFullscreen;
+      var enPC = function () { return document.fullscreenElement || document.webkitFullscreenElement; };
+      if (pedirPC) {
+        bp.hidden = false;
+        bp.title = t[6]; bp.setAttribute("aria-label", t[6]);
+        bp.addEventListener("click", function () {
+          if (enPC()) { (document.exitFullscreen || document.webkitExitFullscreen).call(document); return; }
+          var r;
+          try { r = pedirPC.call(de, { navigationUI: "hide" }); } catch (e) {}
+          var girar = function () { try { if (screen.orientation && screen.orientation.lock) screen.orientation.lock("landscape").catch(function () {}); } catch (e) {} };
+          if (r && r.then) r.then(girar).catch(function () {}); else girar();
+        });
+        var marcar = function () { bp.classList.toggle("dentro", !!enPC()); };
+        document.addEventListener("fullscreenchange", marcar);
+        document.addEventListener("webkitfullscreenchange", marcar);
+      }
+
+      // cuadro de texto para escribir con el teclado del móvil (lo pide el juego: PvpWeb.jslib)
+      var caja = document.getElementById("texto"), form = document.getElementById("texto-form");
+      var entrada = document.getElementById("texto-in"), titulo = document.getElementById("texto-tit");
+      var bOk = document.getElementById("texto-ok"), bNo = document.getElementById("texto-no");
+      var cerrar = function (estadoTxt) {
+        window.pvpTextoValor = entrada.value;
+        window.pvpTextoEstado = estadoTxt;
+        caja.hidden = true;
+        try { entrada.blur(); } catch (e) {}
+        canvas.focus();
+      };
+      window.pvpPedirTexto = function (tit, val, max, ok, no) {
+        titulo.textContent = tit; entrada.value = val || ""; entrada.maxLength = max > 0 ? max : 60;
+        bOk.textContent = ok || "OK"; bNo.textContent = no || "X";
+        caja.dir = lang === "ar" ? "rtl" : "ltr";
+        caja.hidden = false;
+        window.pvpTextoEstado = 0;
+        setTimeout(function () { try { entrada.focus(); entrada.select(); } catch (e) {} }, 30);
+      };
+      form.addEventListener("submit", function (e) { e.preventDefault(); cerrar(1); });
+      bNo.addEventListener("click", function () { cerrar(2); });
+      ["keydown", "keyup", "keypress"].forEach(function (n) {
+        entrada.addEventListener(n, function (e) { e.stopPropagation(); if (n === "keydown" && e.key === "Escape") cerrar(2); });
+      });
+
+      var config = {
+        arguments: [],
+        dataUrl: "Build/pvpkmm_webgl_build3.data.unityweb",
+        frameworkUrl: "Build/pvpkmm_webgl_build3.framework.js.unityweb",
+        codeUrl: "Build/pvpkmm_webgl_build3.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "KMM",
+        productName: "PvP KMM",
+        productVersion: "0.1.0",
+        // PC: 1 (más fluido en pantallas de alta densidad). Móvil: algo más nítido, sin pasarse (memoria y batería)
+        devicePixelRatio: movil ? Math.min(window.devicePixelRatio || 1, 1.5) : 1
+      };
+
+      // En el móvil las texturas van en ETC2 (su tarjeta gráfica las entiende y gastan mucha menos memoria);
+      // en el PC, en DXT. Si el archivo ETC2 no está o el aparato no lo soporta, se usa el normal.
+      function soportaETC() {
+        try {
+          var c = document.createElement("canvas");
+          var gl = c.getContext("webgl2") || c.getContext("webgl");
+          return !!(gl && gl.getExtension("WEBGL_compressed_texture_etc") && !gl.getExtension("WEBGL_compressed_texture_s3tc"));
+        } catch (e) { return false; }
+      }
+      function elegirDatos(listo) {
+        var q = null;
+        try { q = new URLSearchParams(location.search).get("etc2"); } catch (e) {}
+        if (q !== "1" && (q === "0" || !movil || !soportaETC())) return listo();
+        var etc = config.dataUrl.replace(/\.data(\.|$)/, "-etc2.data$1");
+        fetch(etc, { method: "HEAD" }).then(function (r) { if (r.ok) config.dataUrl = etc; listo(); }).catch(function () { listo(); });
+      }
+
       var script = document.createElement("script");
-      script.src = "Build/pvpkmm_webgl_build2.loader.js";
+      script.src = "Build/pvpkmm_webgl_build3.loader.js";
       script.onload = function () {
-        createUnityInstance(canvas, {
-          arguments: [],
-          dataUrl: "Build/pvpkmm_webgl_build2.data.unityweb",
-          frameworkUrl: "Build/pvpkmm_webgl_build2.framework.js.unityweb",
-          codeUrl: "Build/pvpkmm_webgl_build2.wasm.unityweb",
-          streamingAssetsUrl: "StreamingAssets",
-          companyName: "KMM",
-          productName: "PvP KMM",
-          productVersion: "0.1.0",
-          devicePixelRatio: 1   // más fluido en portátiles con pantalla de alta densidad
-        }, function (p) {
-          relleno.style.width = Math.round(p * 100) + "%";
-          if (p >= 0.9) estado.textContent = t[4];
-        }).then(function (inst) {
-          window.unityInstance = inst;
-          window.pvpCargaSegundos = (performance.now() - t0) / 1000;
-          carga.classList.add("fuera");
-          setTimeout(function () { carga.style.display = "none"; }, 600);
-          canvas.focus();
-        }).catch(function (msg) {
-          var e = document.getElementById("error");
-          e.textContent = t[5] + msg;
-          e.hidden = false;
+        elegirDatos(function () {
+          createUnityInstance(canvas, config, function (p) {
+            relleno.style.width = Math.round(p * 100) + "%";
+            if (p >= 0.9) estado.textContent = t[4];
+          }).then(function (inst) {
+            window.unityInstance = inst;
+            window.pvpCargaSegundos = (performance.now() - t0) / 1000;
+            window.pvpDatos = config.dataUrl;
+            carga.classList.add("fuera");
+            setTimeout(function () { carga.style.display = "none"; }, 600);
+            canvas.focus();
+          }).catch(function (msg) {
+            var e = document.getElementById("error");
+            e.textContent = t[5] + msg;
+            e.hidden = false;
+          });
         });
       };
       document.body.appendChild(script);

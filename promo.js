@@ -12,7 +12,8 @@
     { id: 'filmkmm', name: 'Films', icon: '🎬', text: { es: 'Crea tus películas en 3D', en: 'Make your own 3D movies' }, color: '#e50914' },
     { id: 'itneedstwo', name: 'It Needs Two KMM', icon: '🤝', text: { es: 'Juego cooperativo para 2', en: 'Co-op game for 2 players' }, color: '#db2777' },
     { id: 'infinitecraft', name: 'Infinite Craft', icon: '✨', text: { es: 'Mezcla de todo, hasta lo imposible', en: 'Mix anything, even the impossible' }, color: '#7c3aed' },
-    { id: 'craftkmm', name: 'Craft KMM', icon: '⛏️', text: { es: 'Construye un mundo infinito', en: 'Build an infinite world' }, color: '#15803d', url: 'https://kmaram16.github.io/craft-kmm/' }
+    { id: 'craftkmm', name: 'Craft KMM', icon: '⛏️', text: { es: 'Construye un mundo infinito', en: 'Build an infinite world' }, color: '#15803d', url: 'https://kmaram16.github.io/craft-kmm/' },
+    { id: 'dontlookback', name: "Don't Look Back", icon: '👁️', text: { es: 'Terror: 4 monstruos. No confíes en nadie', en: 'Horror: 4 monsters. Trust no one' }, color: '#991b1b' }
   ];
   try {
     var KEY = 'kmm.promo.last';

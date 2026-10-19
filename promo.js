@@ -7,6 +7,7 @@
 // advertises itself. Works on phones (centered, full width).
 (function () {
   var GAMES = [
+    { id: 'kmmworld', name: 'KMM World', icon: '🌍', img: 'kmmworld/shot1.jpg', text: { es: 'Un mundo abierto donde puedes hacerlo TODO', en: 'An open world where you can do EVERYTHING' }, color: '#f97316', cta: { es: 'Descargar', en: 'Download' } },
     { id: 'dontlookback', name: "Don't Look Back", icon: '👻', img: 'dontlookback/shot1.jpg', text: { es: '4 pesadillas. 4 monstruos. No confíes en nadie.', en: '4 nightmares. 4 monsters. Trust no one.' }, color: '#b91c1c', cta: { es: 'Descargar', en: 'Download' } },
     { id: 'kmmcars', name: 'KMM Cars Models Drive', icon: '🏎️', img: 'kmmcars/shot1.jpg', text: { es: 'Coches realistas, volante y simulador', en: 'Realistic cars, wheel & motion sim' }, color: '#0ea5e9', cta: { es: 'Descargar', en: 'Download' } },
     { id: 'pvpkmm', name: 'PvP KMM', icon: '🔫', img: 'pvpkmm/shot1.jpg', text: { es: 'Salta del avión y sé el último en pie', en: 'Jump from the plane, be the last one standing' }, color: '#b45309' },

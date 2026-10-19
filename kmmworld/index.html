@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>KMM World — juego de mundo abierto gratis para PC y Android</title>
+  <meta name="description" content="Juego de mundo abierto gratis hecho por KMM: reparte pizzas, sé policía, motocross, Super Perro, YouTuber, noche zombi, escuela encantada, tu propio arcade y supervivencia en la isla. Para Windows y Android." />
+  <meta property="og:title" content="KMM World 🌍" />
+  <meta property="og:description" content="Un mundo abierto donde puedes hacerlo TODO. Juego gratis para PC y Android hecho por KMM." />
+  <meta property="og:image" content="https://kmaram16.github.io/arcade/kmmworld/shot1.jpg" />
+  <meta property="og:url" content="https://kmaram16.github.io/arcade/kmmworld/" />
+  <link rel="canonical" href="https://kmaram16.github.io/arcade/kmmworld/" />
+  <style>
+    :root { --bg: #e0f2fe; --panel: #ffffff; --ink: #0f172a; --muted: #475569; --accent: #f97316; --accent2: #16a34a; --accent3: #2563eb; --line: #bae6fd; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: linear-gradient(180deg, #7dd3fc 0%, #bae6fd 260px, #ecfdf5 900px, #fefce8 100%); color: var(--ink); font-family: system-ui, -apple-system, "Segoe UI", sans-serif; min-height: 100vh; }
+    .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 48px; }
+    a.back { color: #0c4a6e; text-decoration: none; font-size: 14px; font-weight: 600; }
+    h1 { font-size: clamp(44px, 10vw, 84px); margin: 18px 0 4px; letter-spacing: 0.02em; line-height: 1; font-family: Impact, "Arial Black", system-ui, sans-serif;
+         background: linear-gradient(90deg, #f97316, #eab308, #16a34a, #0ea5e9, #8b5cf6, #ec4899); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 3px 0 rgba(255,255,255,.8)); }
+    .tag { color: #0c4a6e; font-size: 20px; margin: 0 0 22px; font-weight: 700; }
+    .hero { border-radius: 18px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 24px 50px -24px rgba(2,132,199,.6); }
+    .hero img { display: block; width: 100%; height: auto; }
+    .btns { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 8px; }
+    .btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 24px; border-radius: 14px; font-weight: 800; font-size: 18px; text-decoration: none; color: #fff; box-shadow: 0 6px 0 rgba(0,0,0,.18); }
+    .btn:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.18); }
+    .btn.dl { background: var(--accent); }
+    .btn.zip { background: var(--accent3); }
+    .btn.apk { background: var(--accent2); }
+    .small { color: var(--muted); font-size: 13px; margin: 6px 0 22px; line-height: 1.55; }
+    .note { background: #fef9c3; border: 2px solid #fde047; border-radius: 14px; padding: 14px 16px; font-size: 15px; margin: 0 0 22px; line-height: 1.5; }
+    .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin: 26px 0; }
+    .card { background: var(--panel); border: 2px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 8px 20px -14px rgba(2,132,199,.5); }
+    .card b { display: block; font-size: 17px; margin-bottom: 4px; }
+    .card p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.4; }
+    .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .shots img { width: 100%; border-radius: 12px; border: 3px solid #fff; display: block; box-shadow: 0 10px 24px -16px rgba(0,0,0,.5); }
+    h2 { font-size: 24px; margin: 34px 0 10px; color: #0c4a6e; }
+    .keys { color: var(--muted); line-height: 1.9; }
+    kbd { background: #fff; border: 1px solid #94a3b8; border-bottom-width: 3px; border-radius: 6px; padding: 1px 7px; color: var(--ink); font-size: 13px; font-weight: 700; }
+    @media (max-width: 600px) { .shots { grid-template-columns: 1fr; } .btn { width: 100%; justify-content: center; } }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <a class="back" href="../">← KMM Arcade</a>
+    <h1>KMM WORLD</h1>
+    <p class="tag">Un mundo abierto donde puedes hacerlo TODO 🌍</p>
+    <div class="hero"><img src="shot1.jpg" alt="KMM World: el puente hacia la isla" /></div>
+    <div class="btns">
+      <a class="btn dl" href="https://github.com/kmaram16/kmm-world/releases/latest/download/KMM-World-Setup.exe">⬇️ Descargar instalador</a>
+      <a class="btn zip" href="https://github.com/kmaram16/kmm-world/releases/latest/download/KMM-World-Windows.zip">📦 Descargar .zip</a>
+      <a class="btn apk" href="https://github.com/kmaram16/kmm-world/releases/latest/download/KMMWorld.apk">🤖 APK Android</a>
+    </div>
+    <p class="small">Gratis · <b>Windows 10/11</b> (64 bits) y <b>Android</b> · instalador 115 MB, .zip 167 MB, APK 168 MB. Abre <b>KMM-World-Setup.exe</b>, pulsa <b>Siguiente → Instalar</b> y tendrás el icono en el Escritorio. Si Windows dice "Windows protegió tu PC", pulsa <b>Más información → Ejecutar de todas formas</b>. Con el .zip: descomprímelo y abre <b>KMM World.exe</b>. En Android: abre el APK y permite "instalar apps desconocidas" si te lo pide. Menú en español, con opción en inglés.</p>
+    <p class="note">🚧 <b>Versión temprana (v0.2).</b> El juego todavía está en construcción: puede haber fallos y cada versión trae cosas nuevas. ¡Gracias por probarlo!</p>
+    <div class="grid">
+      <div class="card"><b>🍕 Pizza</b><p>Reparte pizzas de la Pizzería Mami en moto por toda la ciudad antes de que se acabe el tiempo.</p></div>
+      <div class="card"><b>🚓 Policía</b><p>Persigue a los ladrones con el coche patrulla... o escapa tú de la policía.</p></div>
+      <div class="card"><b>🏍️ Motocross</b><p>Saltos y curvas en la pista de motocross de la isla.</p></div>
+      <div class="card"><b>🦸 Super Perro</b><p>Vuela con capa y rescata al gato del árbol y a quien lo necesite.</p></div>
+      <div class="card"><b>📱 YouTuber</b><p>Graba tus aventuras con la <kbd>R</kbd>, súbelas desde el teléfono y gana suscriptores.</p></div>
+      <div class="card"><b>🧟 Noche zombi</b><p>Cuando cae la noche llegan los zombis. ¡Aguanta hasta el amanecer!</p></div>
+      <div class="card"><b>🏫 Escuela encantada</b><p>5 noches con Norberto: puertas, luces y cámaras. ¿Llegarás a las 6 AM?</p></div>
+      <div class="card"><b>🕹️ Tycoon</b><p>Construye tu propio arcade, coloca máquinas y gana monedas.</p></div>
+      <div class="card"><b>🏝️ Supervivencia en la isla</b><p>Kamyar y Mami: comida, agua, cabaña, balsa... y los piratas del capitán Norberto por la noche.</p></div>
+    </div>
+    <div class="shots"><img src="shot2.jpg" alt="Super Perro" loading="lazy" /><img src="shot3.jpg" alt="Reparto de pizzas" loading="lazy" /><img src="shot4.jpg" alt="¡Escapa de la policía!" loading="lazy" /><img src="shot5.jpg" alt="Supervivencia en la isla: piratas" loading="lazy" /><img src="shot6.jpg" alt="Tycoon: tu propio arcade" loading="lazy" /></div>
+    <h2>Controles</h2>
+    <p class="keys"><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> moverse · Ratón mirar · <kbd>Shift</kbd> correr · <kbd>Espacio</kbd> saltar (freno de mano en vehículos) · <kbd>E</kbd> usar / subir y bajar · <kbd>Tab</kbd> teléfono · <kbd>M</kbd> mapa · <kbd>R</kbd> grabar · <kbd>Esc</kbd> pausa. También con mando de Xbox 🎮 y controles táctiles en Android.</p>
+  </div>
+<script src="../promo.js" defer></script>
+</body>
+</html>

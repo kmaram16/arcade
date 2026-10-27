@@ -814,20 +814,5 @@ window.CONSOLA_FREE = [
     "url": "https://wwwtyro.github.io/Astray/",
     "external": false,
     "free": true
-  },
-  {
-    "id": "free-2048",
-    "name": "2048 (original)",
-    "icon": "🔢",
-    "accent": [
-      "#edc22e",
-      "#f67c5f"
-    ],
-    "category": "Puzzle",
-    "credit": "Gabriele Cirulli",
-    "license": "MIT",
-    "url": "https://gabrielecirulli.github.io/2048/",
-    "external": false,
-    "free": true
   }
 ];

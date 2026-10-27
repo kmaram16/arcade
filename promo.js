@@ -18,7 +18,7 @@
     { id: 'cocina', name: 'Cocina del Mundo', icon: '🍲', text: { es: 'Recetas de todo el mundo con fotos', en: 'Recipes from around the world' }, color: '#e0562d' },
     { id: 'infinitecraft', name: 'Infinite Craft', icon: '✨', text: { es: 'Mezcla de todo, hasta lo imposible', en: 'Mix anything, even the impossible' }, color: '#7c3aed' },
     { id: 'craftkmm', name: 'Craft KMM', icon: '⛏️', text: { es: 'Construye un mundo infinito', en: 'Build an infinite world' }, color: '#15803d', url: 'https://kmaram16.github.io/craft-kmm/' },
-    { id: 'consola', name: 'Consola KMM', icon: '📺', text: { es: 'Tu tele y consola virtual en tu cuarto (AR)', en: 'Your virtual TV & console in your room (AR)' }, color: '#5bd6ff' }
+    { id: 'consola', name: 'Consola Nebula', icon: '🌌', text: { es: 'Consola espacial: juega con mando en pantalla grande', en: 'Space console: play with a controller on the big screen' }, color: '#7c5cff' }
   ];
   try {
     var KEY = 'kmm.promo.last';
@@ -26,7 +26,11 @@
     var last = 0;
     try { last = +(localStorage.getItem(KEY) || 0); } catch (e) {}
     if (now - last < 90 * 1000) return;
-    if (new URLSearchParams(location.search).has('test')) return; // never during automated tests
+    // Never show the house ad when embedded (e.g. inside Nebula Console) or when
+    // a host asked to suppress it, or during automated tests.
+    try { if (window.top !== window.self) return; } catch (e) { return; }
+    var qp = new URLSearchParams(location.search);
+    if (qp.has('test') || qp.has('noad') || qp.has('embed')) return;
 
     // Base folder of the arcade = folder that holds this script (works at any depth).
     var src = (document.currentScript && document.currentScript.src) || '';

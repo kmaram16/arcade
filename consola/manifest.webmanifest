@@ -1,8 +1,8 @@
 {
   "id": "/arcade/consola/",
-  "name": "Consola KMM",
-  "short_name": "Consola KMM",
-  "description": "Una tele y una consola virtual en el navegador. Pon la tele en tu cuarto con la cámara (AR) y juega con mando, teclado o pantalla táctil.",
+  "name": "Nebula Console",
+  "short_name": "Nebula",
+  "description": "Nebula Console (by KMM): una consola virtual de temática espacial para jugar en pantalla grande con mando o teclado. Lanza tus juegos y juegos web gratis. No es un emulador.",
   "lang": "es",
   "start_url": "./",
   "scope": "./",

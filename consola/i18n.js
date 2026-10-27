@@ -75,7 +75,16 @@
     rotate: 'Turn your phone to play better',
     camDenied: 'No camera: showing a pretend room. Turn it on with 📷.',
     loading: 'Loading…',
-    chooseLang: 'Choose your language', searchLang: 'Search language…'
+    chooseLang: 'Choose your language', searchLang: 'Search language…',
+    carHint: 'swipe / arrows / stick to browse', play: 'Play', back: 'Back', menu: 'Menu',
+    searchAct: 'Search', cameraAct: 'Camera', category: 'Category', renameProfile: 'Your name?',
+    brand: 'Nebula Console', favorite: 'Favorite', byKmm: 'by KMM',
+    connectPad: 'Connect a controller', connectPadHow: 'Pair a gamepad by Bluetooth or USB to play on the big screen. You can also use the keyboard.',
+    continueKb: 'Continue with keyboard', padReady: 'Controller ready',
+    modeConsole: 'Console mode', modePc: 'PC mode', chooseMode: 'How do you want to play?',
+    modeConsoleHow: 'Couch + controller on a big screen', modePcHow: 'Keyboard & mouse on a computer',
+    kbHints: '← → Move · Enter Play · Esc Back · / Search', useController: 'Use your controller 🎮',
+    voice: 'Speak', voiceNA: 'Voice not available here', voiceHelp: "Didn't catch that — try: 'play Snake'", voiceListen: 'Listening…', move: 'Move'
   };
 
   var STR = {
@@ -91,9 +100,19 @@
       pasteHelp: 'Pega la dirección (URL) de un juego web para verlo en la tele. Se abre de forma aislada (sandbox). Úsalo solo con páginas de confianza.',
       pasteGo: 'Cargar', rotate: 'Gira el móvil para jugar mejor',
       camDenied: 'Sin cámara: mostrando un cuarto de mentira. Puedes activarla con 📷.',
-      loading: 'Cargando…', chooseLang: 'Elige tu idioma', searchLang: 'Buscar idioma…'
+      loading: 'Cargando…', chooseLang: 'Elige tu idioma', searchLang: 'Buscar idioma…',
+      carHint: 'desliza / flechas / stick para ver', play: 'Jugar', back: 'Atrás', menu: 'Menú',
+      searchAct: 'Buscar', cameraAct: 'Cámara', category: 'Categoría', renameProfile: '¿Tu nombre?',
+      brand: 'Consola Nebula', favorite: 'Favorito', byKmm: 'de KMM',
+      connectPad: 'Conecta un mando', connectPadHow: 'Empareja un mando por Bluetooth o USB para jugar en la pantalla grande. También puedes usar el teclado.',
+      continueKb: 'Seguir con el teclado', padReady: 'Mando listo',
+      modeConsole: 'Modo Consola', modePc: 'Modo PC', chooseMode: '¿Cómo quieres jugar?',
+      modeConsoleHow: 'Sofá + mando en una pantalla grande', modePcHow: 'Teclado y ratón en un ordenador',
+      kbHints: '← → Mover · Enter Jugar · Esc Atrás · / Buscar', useController: 'Usa tu mando 🎮',
+      voice: 'Hablar', voiceNA: 'Voz no disponible aquí', voiceHelp: "No te entendí — prueba: 'jugar Snake'", voiceListen: 'Escuchando…', move: 'Mover'
     },
     pt: {
+      brand: 'Consola Nebula',
       bootTips: ['Ligando…', 'Aquecendo a tela…', 'Procurando controles…', 'Pronto para jogar!'],
       idleSub: 'Escolha um jogo abaixo ▾', camOn: '📷 Câmera', camOff: '📷 Sem câmera',
       install: 'Instalar app', titleMine: 'Meus jogos KMM', titleFree: 'Mais jogos grátis',
@@ -104,6 +123,7 @@
       rotate: 'Gire o celular para jogar melhor', chooseLang: 'Escolha seu idioma', searchLang: 'Buscar idioma…'
     },
     fr: {
+      brand: 'Console Nebula',
       bootTips: ['Allumage…', 'Préchauffage de l’écran…', 'Recherche de manettes…', 'Prêt à jouer !'],
       idleSub: 'Choisis un jeu ci-dessous ▾', camOn: '📷 Caméra', camOff: '📷 Caméra off',
       install: 'Installer l’app', titleMine: 'Mes jeux KMM', titleFree: 'Plus de jeux gratuits',
@@ -114,6 +134,7 @@
       rotate: 'Tourne le téléphone pour mieux jouer', chooseLang: 'Choisis ta langue', searchLang: 'Rechercher une langue…'
     },
     de: {
+      brand: 'Nebula-Konsole',
       bootTips: ['Einschalten…', 'Bildschirm aufwärmen…', 'Suche Controller…', 'Bereit zum Spielen!'],
       idleSub: 'Wähle unten ein Spiel ▾', camOn: '📷 Kamera', camOff: '📷 Kamera aus',
       install: 'App installieren', titleMine: 'Meine KMM-Spiele', titleFree: 'Mehr Gratis-Spiele',
@@ -124,6 +145,7 @@
       rotate: 'Dreh das Handy zum Spielen', chooseLang: 'Wähle deine Sprache', searchLang: 'Sprache suchen…'
     },
     it: {
+      brand: 'Console Nebula',
       bootTips: ['Accensione…', 'Riscaldo lo schermo…', 'Cerco i controller…', 'Pronto a giocare!'],
       idleSub: 'Scegli un gioco sotto ▾', camOn: '📷 Fotocamera', camOff: '📷 Senza camera',
       install: 'Installa app', titleMine: 'I miei giochi KMM', titleFree: 'Altri giochi gratis',

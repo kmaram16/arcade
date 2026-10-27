@@ -11,8 +11,8 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <link rel="icon" href="icon.svg" type="image/svg+xml" />
     <link rel="canonical" href="https://kmaram16.github.io/arcade/consola/" />
-    <title>Consola KMM — tu tele y consola virtual</title>
-    <meta name="description" content="Consola KMM: una tele y una consola virtual en tu navegador. Mira tu cuarto con la cámara (AR) y juega en la tele con mando, teclado o pantalla táctil. Hecho por KMM." />
+    <title>Nebula Console — tu consola espacial by KMM</title>
+    <meta name="description" content="Nebula Console: una consola virtual de temática espacial para jugar en pantalla grande con mando (o teclado). Lanza tus juegos y juegos web gratis. No es un emulador. Hecho por KMM." />
 
     <meta property="og:type" content="website" />
     <meta property="og:site_name" content="KMM Arcade" />
@@ -42,10 +42,11 @@
     <!-- BOOT -->
     <div id="boot" class="boot">
       <div class="boot-logo">
-        <div class="boot-k">KMM</div>
-        <div class="boot-name">CONSOLA</div>
+        <div class="boot-k">NEBULA</div>
+        <div class="boot-name" id="bootName">CONSOLE</div>
         <div class="boot-bar"><i></i></div>
         <div class="boot-tip" id="bootTip">Encendiendo…</div>
+        <div class="boot-credit">by KMM</div>
       </div>
     </div>
 
@@ -53,10 +54,20 @@
     <main id="app" class="app" hidden>
       <!-- Top bar -->
       <header class="topbar">
-        <div class="brand"><span class="dot"></span> Consola <b>KMM</b></div>
+        <div class="brand" id="brandLogo"><span class="dot"></span> <span id="brandText"><b>Nebula</b> Console</span>
+          <span id="clock" class="clock" aria-hidden="true"></span>
+        </div>
         <div class="top-actions">
+          <button id="modeBtn" class="pill" type="button" title="Modo"><span id="modeIcon">🎮</span> <span id="modeLabel">Consola</span></button>
+          <button id="profileBtn" class="pill" type="button" title="Perfil">👤 <span id="profileName">P1</span></button>
           <span id="padIndicator" class="pill pad-pill" hidden>🎮 <span id="padText">Mando conectado</span></span>
+          <button id="micBtn" class="pill" type="button" hidden title="Hablar">🎤 <span id="micLabel">Hablar</span></button>
           <button id="camBtn" class="pill" type="button" aria-pressed="false"><span id="camLabel">📷 Cámara</span></button>
+          <span class="pill size-pill" role="group" aria-label="Tamaño de la tele">
+            <button id="sizeDown" type="button" aria-label="TV más pequeña">−</button>
+            <input id="sizeRange" class="size-range" type="range" min="40" max="100" step="4" value="60" aria-label="Tamaño de la tele" />
+            <button id="sizeUp" type="button" aria-label="TV más grande">+</button>
+          </span>
           <button id="fsBtn" class="pill" type="button" title="Pantalla completa">⛶</button>
           <button id="langBtn" class="pill" type="button" title="Idioma">🌐 <span id="langText">ES</span></button>
           <button id="installBtn" class="pill install" type="button" hidden>⬇︎ <span id="installText">Instalar</span></button>
@@ -69,10 +80,12 @@
           <div class="tv">
             <div class="tv-bezel">
               <div class="tv-screen" id="tvScreen">
-                <!-- Idle screen (menu is shown over the whole app; this is the "attract" state) -->
+                <!-- Idle screen = the on-TV game carousel (channel/cover-flow) -->
                 <div class="screen-idle" id="screenIdle">
-                  <div class="idle-logo">KMM</div>
-                  <div class="idle-sub" id="idleSub">Elige un juego abajo ▾</div>
+                  <div class="idle-brand">NEBULA</div>
+                  <div class="carousel" id="carousel" role="listbox" aria-label="Juegos"></div>
+                  <div class="car-caption" id="carCaption"></div>
+                  <div class="car-hint" id="carHint">⟵ desliza / flechas ⟶</div>
                   <div class="idle-glow"></div>
                 </div>
                 <!-- A game runs here -->
@@ -88,6 +101,8 @@
               </div>
               <div class="tv-scanlines" aria-hidden="true"></div>
               <div class="tv-glare" aria-hidden="true"></div>
+              <span class="tv-side" aria-hidden="true"></span>
+              <span class="tv-base-face" aria-hidden="true"></span>
             </div>
             <div class="tv-brand">KMM-VISION</div>
             <button id="homeBtn" class="tv-home" type="button" hidden>⟵ <span id="homeText">MENÚ</span></button>
@@ -101,6 +116,29 @@
               <div class="console-vents"><span></span><span></span><span></span><span></span><span></span></div>
             </div>
             <div class="console-stand"></div>
+          </div>
+          <div class="floor-shadow" aria-hidden="true"></div>
+
+          <!-- 3D-styled mascots (by KMM, inspired by "Lulumi") -->
+          <div class="pet pet-dog" id="petDog" data-pet="dog" role="button" tabindex="0" aria-label="Perro">
+            <span class="pet-shadow"></span>
+            <span class="pet-tail"></span>
+            <span class="pet-torso"></span>
+            <span class="pet-head">
+              <span class="pet-ear l"></span><span class="pet-ear r"></span>
+              <span class="pet-eye l"></span><span class="pet-eye r"></span>
+              <span class="pet-snout"></span>
+            </span>
+          </div>
+          <div class="pet pet-cat" id="petCat" data-pet="cat" role="button" tabindex="0" aria-label="Gato">
+            <span class="pet-shadow"></span>
+            <span class="pet-tail"></span>
+            <span class="pet-torso"></span>
+            <span class="pet-head">
+              <span class="pet-ear l"></span><span class="pet-ear r"></span>
+              <span class="pet-eye l"></span><span class="pet-eye r"></span>
+              <span class="pet-snout"></span>
+            </span>
           </div>
         </div>
       </section>
@@ -145,6 +183,9 @@
         </div>
       </div>
       <button id="touchToggle" class="touch-toggle" type="button" hidden title="Controles táctiles">🎮</button>
+
+      <!-- Console-style button hint bar -->
+      <div class="hintbar" id="hintBar" aria-hidden="true"></div>
     </main>
 
     <!-- Rotate hint (portrait) -->

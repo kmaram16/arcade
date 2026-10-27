@@ -523,7 +523,7 @@ window.CONSOLA_GAMES = [
   },
   {
     "id": "cazapollos",
-    "name": "Hit Chicken KMM",
+    "name": "Hit the Chicken 2.0",
     "icon": "🐔",
     "accent": [
       "#e0562d",

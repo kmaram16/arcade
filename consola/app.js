@@ -269,7 +269,9 @@
       ext.hidden = true;
       frame.hidden = false;
       frame.removeAttribute('sandbox');
+      frame.onload = focusFrame;
       frame.src = withLang(g.url);
+      focusFrameSoon();
     }
     $('homeBtn').hidden = false;
     document.body.classList.add('in-game');
@@ -283,7 +285,9 @@
     frame.hidden = false;
     // Untrusted: sandbox it (allow scripts + same-origin-less execution, no top navigation).
     frame.setAttribute('sandbox', 'allow-scripts allow-pointer-lock allow-forms allow-popups');
+    frame.onload = focusFrame;
     frame.src = url;
+    focusFrameSoon();
     $('homeBtn').hidden = false;
     document.body.classList.add('in-game');
     $('tvScreen').scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -298,6 +302,17 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
   $('homeBtn').addEventListener('click', goHome);
+
+  // Embedded games (e.g. Astray) read keyboard input, so the iframe must hold
+  // focus. Focus it on load, and re-grab focus whenever the player taps the TV.
+  function focusFrame() {
+    var f = $('gameFrame');
+    if (current && !current.external && !f.hidden) { try { f.focus(); } catch (e) {} }
+  }
+  function focusFrameSoon() { setTimeout(focusFrame, 120); setTimeout(focusFrame, 700); setTimeout(focusFrame, 1600); }
+  ['pointerdown', 'touchstart', 'click'].forEach(function (ev) {
+    $('tvScreen').addEventListener(ev, function () { focusFrame(); });
+  });
 
   // paste link
   $('pasteForm').addEventListener('submit', function (e) {

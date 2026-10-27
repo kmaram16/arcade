@@ -771,21 +771,6 @@ window.CONSOLA_GAMES = [
 ];
 window.CONSOLA_FREE = [
   {
-    "id": "free-hextris",
-    "name": "Hextris",
-    "icon": "🔷",
-    "accent": [
-      "#e74c3c",
-      "#3498db"
-    ],
-    "category": "Puzzle",
-    "credit": "Hextris Team",
-    "license": "GPL-3.0",
-    "url": "https://hextris.github.io/",
-    "external": false,
-    "free": true
-  },
-  {
     "id": "free-clumsybird",
     "name": "Clumsy Bird",
     "icon": "🐦",
@@ -812,6 +797,21 @@ window.CONSOLA_FREE = [
     "credit": "wwwtyro",
     "license": "MIT",
     "url": "https://wwwtyro.github.io/Astray/",
+    "external": false,
+    "free": true
+  },
+  {
+    "id": "free-trex",
+    "name": "T-Rex Runner",
+    "icon": "🦖",
+    "accent": [
+      "#535353",
+      "#9e9e9e"
+    ],
+    "category": "Arcade",
+    "credit": "wayou",
+    "license": "MIT",
+    "url": "https://wayou.github.io/t-rex-runner/",
     "external": false,
     "free": true
   }

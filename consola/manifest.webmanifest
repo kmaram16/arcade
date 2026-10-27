@@ -1,0 +1,20 @@
+{
+  "id": "/arcade/consola/",
+  "name": "Consola KMM",
+  "short_name": "Consola KMM",
+  "description": "Una tele y una consola virtual en el navegador. Pon la tele en tu cuarto con la cámara (AR) y juega con mando, teclado o pantalla táctil.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#06070f",
+  "theme_color": "#06070f",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    { "src": "icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

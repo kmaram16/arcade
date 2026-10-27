@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#06070f" />
+    <link rel="manifest" href="manifest.webmanifest" />
+    <link rel="apple-touch-icon" href="icon-192.png" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <link rel="icon" href="icon.svg" type="image/svg+xml" />
+    <link rel="canonical" href="https://kmaram16.github.io/arcade/consola/" />
+    <title>Consola KMM — tu tele y consola virtual</title>
+    <meta name="description" content="Consola KMM: una tele y una consola virtual en tu navegador. Mira tu cuarto con la cámara (AR) y juega en la tele con mando, teclado o pantalla táctil. Hecho por KMM." />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="KMM Arcade" />
+    <meta property="og:title" content="Consola KMM 🎮📺" />
+    <meta property="og:description" content="Una tele y una consola de verdad... virtual. Ponla en tu cuarto con la cámara y juega con mando o teclado." />
+    <meta property="og:url" content="https://kmaram16.github.io/arcade/consola/" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <!-- Camera / room background sits behind everything -->
+    <div id="bg" class="bg">
+      <video id="cam" class="cam" autoplay playsinline muted></video>
+      <div id="room" class="room" aria-hidden="true">
+        <div class="room-wall"></div>
+        <div class="room-floor"></div>
+        <div class="room-window"></div>
+        <div class="room-lamp"></div>
+        <div class="room-plant">🪴</div>
+        <div class="room-rug"></div>
+      </div>
+      <div class="bg-vignette" aria-hidden="true"></div>
+    </div>
+
+    <!-- BOOT -->
+    <div id="boot" class="boot">
+      <div class="boot-logo">
+        <div class="boot-k">KMM</div>
+        <div class="boot-name">CONSOLA</div>
+        <div class="boot-bar"><i></i></div>
+        <div class="boot-tip" id="bootTip">Encendiendo…</div>
+      </div>
+    </div>
+
+    <!-- APP -->
+    <main id="app" class="app" hidden>
+      <!-- Top bar -->
+      <header class="topbar">
+        <div class="brand"><span class="dot"></span> Consola <b>KMM</b></div>
+        <div class="top-actions">
+          <span id="padIndicator" class="pill pad-pill" hidden>🎮 <span id="padText">Mando conectado</span></span>
+          <button id="camBtn" class="pill" type="button" aria-pressed="false"><span id="camLabel">📷 Cámara</span></button>
+          <button id="fsBtn" class="pill" type="button" title="Pantalla completa">⛶</button>
+          <button id="langBtn" class="pill" type="button" title="Idioma">🌐 <span id="langText">ES</span></button>
+          <button id="installBtn" class="pill install" type="button" hidden>⬇︎ <span id="installText">Instalar</span></button>
+        </div>
+      </header>
+
+      <!-- The TV + console unit -->
+      <section class="stage" id="stage">
+        <div class="tv-wrap" id="tvWrap">
+          <div class="tv">
+            <div class="tv-bezel">
+              <div class="tv-screen" id="tvScreen">
+                <!-- Idle screen (menu is shown over the whole app; this is the "attract" state) -->
+                <div class="screen-idle" id="screenIdle">
+                  <div class="idle-logo">KMM</div>
+                  <div class="idle-sub" id="idleSub">Elige un juego abajo ▾</div>
+                  <div class="idle-glow"></div>
+                </div>
+                <!-- A game runs here -->
+                <iframe id="gameFrame" class="game-frame" title="Juego" hidden
+                        allow="autoplay; fullscreen; gamepad; microphone; accelerometer; gyroscope"></iframe>
+                <!-- External game cover -->
+                <div class="screen-ext" id="screenExt" hidden>
+                  <div class="ext-icon" id="extIcon">🎮</div>
+                  <div class="ext-name" id="extName"></div>
+                  <div class="ext-note" id="extNote"></div>
+                  <button id="extOpen" class="btn-big" type="button">Abrir ▶</button>
+                </div>
+              </div>
+              <div class="tv-scanlines" aria-hidden="true"></div>
+              <div class="tv-glare" aria-hidden="true"></div>
+            </div>
+            <div class="tv-brand">KMM-VISION</div>
+            <button id="homeBtn" class="tv-home" type="button" hidden>⟵ <span id="homeText">MENÚ</span></button>
+          </div>
+          <!-- The console unit under the TV -->
+          <div class="console-unit">
+            <div class="console-body">
+              <div class="console-slot"><i></i></div>
+              <div class="console-logo">KMM</div>
+              <div class="console-power" id="powerLight" title="Encendida"></div>
+              <div class="console-vents"><span></span><span></span><span></span><span></span><span></span></div>
+            </div>
+            <div class="console-stand"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Library -->
+      <section class="library" id="library">
+        <div class="lib-controls">
+          <input id="search" class="search" type="search" placeholder="Buscar juegos…" aria-label="Buscar juegos" />
+          <div class="filters" id="filters" role="tablist" aria-label="Categorías"></div>
+        </div>
+
+        <h2 class="lib-title" id="titleMine">Mis juegos KMM</h2>
+        <div class="grid" id="gridMine" role="list"></div>
+
+        <h2 class="lib-title" id="titleFree">Más juegos gratis</h2>
+        <p class="lib-note" id="freeNote">Juegos libres y gratuitos hechos por otras personas. Se abren dentro de la tele.</p>
+        <div class="grid" id="gridFree" role="list"></div>
+
+        <details class="paste">
+          <summary id="pasteSummary">🔗 Pegar enlace de un juego</summary>
+          <p class="paste-help" id="pasteHelp">Pega la dirección (URL) de un juego web para verlo en la tele. Se abre de forma aislada (sandbox). Úsalo solo con páginas de confianza.</p>
+          <form id="pasteForm" class="paste-form">
+            <input id="pasteUrl" class="search" type="url" placeholder="https://…" aria-label="URL del juego" />
+            <button class="btn-small" type="submit" id="pasteGo">Cargar</button>
+          </form>
+        </details>
+      </section>
+
+      <!-- Touch controls -->
+      <div class="touchpad" id="touchpad" hidden>
+        <div class="dpad" aria-hidden="false">
+          <button class="d up" data-dir="up" aria-label="Arriba">▲</button>
+          <button class="d left" data-dir="left" aria-label="Izquierda">◀</button>
+          <button class="d right" data-dir="right" aria-label="Derecha">▶</button>
+          <button class="d down" data-dir="down" aria-label="Abajo">▼</button>
+          <span class="d-center"></span>
+        </div>
+        <div class="abxy">
+          <button class="ab b" data-btn="B" aria-label="B (atrás)">B</button>
+          <button class="ab a" data-btn="A" aria-label="A (seleccionar)">A</button>
+          <button class="ab start" data-btn="START" aria-label="Start / Menú">☰</button>
+        </div>
+      </div>
+      <button id="touchToggle" class="touch-toggle" type="button" hidden title="Controles táctiles">🎮</button>
+    </main>
+
+    <!-- Rotate hint (portrait) -->
+    <div id="rotate" class="rotate" hidden>
+      <div class="rotate-phone">📱</div>
+      <div class="rotate-msg" id="rotateMsg">Gira el móvil para jugar mejor</div>
+    </div>
+
+    <script src="games.generated.js"></script>
+    <script src="i18n.js"></script>
+    <script src="app.js"></script>
+  </body>
+</html>

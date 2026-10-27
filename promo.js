@@ -17,7 +17,8 @@
     { id: 'kamyspikes', name: 'Kamy Spikes', icon: '🔺', text: { es: '¡Salta los pinchos al ritmo!', en: 'Jump the spikes to the beat!' }, color: '#2563eb' },
     { id: 'cocina', name: 'Cocina del Mundo', icon: '🍲', text: { es: 'Recetas de todo el mundo con fotos', en: 'Recipes from around the world' }, color: '#e0562d' },
     { id: 'infinitecraft', name: 'Infinite Craft', icon: '✨', text: { es: 'Mezcla de todo, hasta lo imposible', en: 'Mix anything, even the impossible' }, color: '#7c3aed' },
-    { id: 'craftkmm', name: 'Craft KMM', icon: '⛏️', text: { es: 'Construye un mundo infinito', en: 'Build an infinite world' }, color: '#15803d', url: 'https://kmaram16.github.io/craft-kmm/' }
+    { id: 'craftkmm', name: 'Craft KMM', icon: '⛏️', text: { es: 'Construye un mundo infinito', en: 'Build an infinite world' }, color: '#15803d', url: 'https://kmaram16.github.io/craft-kmm/' },
+    { id: 'consola', name: 'Consola KMM', icon: '📺', text: { es: 'Tu tele y consola virtual en tu cuarto (AR)', en: 'Your virtual TV & console in your room (AR)' }, color: '#5bd6ff' }
   ];
   try {
     var KEY = 'kmm.promo.last';

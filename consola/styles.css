@@ -118,9 +118,12 @@ button { font-family: inherit; cursor: pointer; }
 .pill.install { background: linear-gradient(90deg, var(--accent), var(--accent2)); color: #06070f; border: 0; }
 .pad-pill { background: rgba(53,240,160,.16); border-color: var(--good); color: var(--good); }
 
-/* ---------- Stage: 3D TV + console standing in the room ---------- */
-.stage { display: grid; place-items: center; padding: 20px 12px 10px;
-  perspective: 1500px; perspective-origin: 50% 42%; }
+/* ---------- Stage: 3D TV + console standing on the floor ---------- */
+/* Bottom-anchored + a low perspective origin so the TV rests on the ground
+   (near the bottom of the view), like a real TV standing in the room. */
+.stage { display: grid; place-items: end center; align-content: end; min-height: 66vh;
+  padding: 8px 12px 2vh; perspective: 1500px; perspective-origin: 50% 62%; }
+@media (max-width: 760px) { .stage { min-height: 60vh; } }
 /* --tv-s = idle scale (smaller, so the room shows), --tv-sg = in-game scale,
    --tv-x/--tv-y = drag offset. Width-based scale so the layout reflows cleanly. */
 .tv-wrap { position: relative; width: calc(min(94vw, 860px) * var(--tv-s, .6));
@@ -148,10 +151,10 @@ body.in-game .tv-wrap { width: calc(min(96vw, 1000px) * var(--tv-sg, .96));
 .tv-base-face { position: absolute; left: 5%; right: 5%; bottom: 0; height: 38px;
   background: linear-gradient(#0a0d18, #04050a); transform-origin: center bottom;
   transform: rotateX(-90deg); border-radius: 0 0 6px 6px; }
-/* Soft contact shadow on the floor. */
-.floor-shadow { position: absolute; left: 50%; bottom: -22px; width: 72%; height: 46px;
-  background: radial-gradient(ellipse, rgba(0,0,0,.55), rgba(0,0,0,.28) 55%, transparent 72%);
-  transform: translate(-50%, 0) translateZ(-20px) rotateX(78deg); filter: blur(6px);
+/* Soft contact shadow on the floor, right under the stand. */
+.floor-shadow { position: absolute; left: 50%; bottom: -16px; width: 86%; height: 42px;
+  background: radial-gradient(ellipse, rgba(0,0,0,.6), rgba(0,0,0,.3) 55%, transparent 74%);
+  transform: translate(-50%, 0) translateZ(-16px) rotateX(80deg); filter: blur(7px);
   pointer-events: none; }
 .tv-screen { position: relative; aspect-ratio: 16 / 9; border-radius: 8px; overflow: hidden;
   background: #000; box-shadow: inset 0 0 60px rgba(0,0,0,.9), 0 0 2px #000;

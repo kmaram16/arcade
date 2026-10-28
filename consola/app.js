@@ -33,6 +33,7 @@
     $('rotateMsg').textContent = s.rotate;
     $('carHint').textContent = s.carHint || '';
     var ml = $('micLabel'); if (ml) ml.textContent = s.voice || 'Speak';
+    var pl2 = $('placeLabel'); if (pl2) pl2.textContent = s.moveTv || 'Move TV';
     applyBrand();
     setModeUI();
     renderFilters();
@@ -143,6 +144,8 @@
     bg.classList.remove('cam-on'); camOn = false;
     $('camBtn').setAttribute('aria-pressed', 'false');
     $('camLabel').textContent = t().camOff;
+    try { $('placeBtn').hidden = true; } catch (e) {}
+    if (typeof exitPlace === 'function') exitPlace();
   }
 
   function startCam() {
@@ -155,6 +158,8 @@
       video.classList.add('on'); bg.classList.add('cam-on'); camOn = true;
       $('camBtn').setAttribute('aria-pressed', 'true');
       $('camLabel').textContent = t().camOn;
+      $('placeBtn').hidden = false; // AR: offer tap-to-place
+      if (!arPlacedOnce) { arPlacedOnce = true; setTimeout(function () { if (camOn) enterPlace(); }, 500); }
     }).catch(function () { showRoom(t().camDenied); });
   }
 
@@ -482,6 +487,16 @@
   document.addEventListener('keydown', function (e) {
     var k = e.key;
     if (pickerEl && !pickerEl.hidden) { if (k === 'Escape') closePicker(); return; }
+    if (placing) {
+      var step = 28;
+      if (k === 'ArrowLeft' || k === 'a' || k === 'A') { rx -= step; moveReticle(); e.preventDefault(); }
+      else if (k === 'ArrowRight' || k === 'd' || k === 'D') { rx += step; moveReticle(); e.preventDefault(); }
+      else if (k === 'ArrowUp' || k === 'w' || k === 'W') { ry -= step; moveReticle(); e.preventDefault(); }
+      else if (k === 'ArrowDown' || k === 's' || k === 'S') { ry += step; moveReticle(); e.preventDefault(); }
+      else if (k === 'Enter' || k === ' ') { dropHere(); e.preventDefault(); }
+      else if (k === 'Escape') { exitPlace(); e.preventDefault(); }
+      return;
+    }
     var typing = document.activeElement && /INPUT|TEXTAREA/.test(document.activeElement.tagName);
     if (k === 'Escape' || k === 'Backspace') {
       if (typing) return;
@@ -525,6 +540,12 @@
     if (gp) {
       if (!padConnected) { setPad(gp.id); showPad(true); }
       var b = gp.buttons, ax = gp.axes || [], now = Date.now();
+      if (placing) { // AR placement: move the reticle with the stick, A drops, B cancels
+        rx += (ax[0] || 0) * 9; ry += (ax[1] || 0) * 9; moveReticle();
+        if (edge('a', b[0] && b[0].pressed)) dropHere();
+        if (edge('b', b[1] && b[1].pressed)) exitPlace();
+        requestAnimationFrame(pollPads); return;
+      }
       var lx = ax[0] || 0;
       var left = (b[14] && b[14].pressed), right = (b[15] && b[15].pressed);
       if (edge('dl', left)) carMove(-1);
@@ -612,6 +633,59 @@
   tvWrap.addEventListener('pointercancel', endPointer);
   function dist() { var v = Object.keys(pts).map(function (k) { return pts[k]; }); if (v.length < 2) return 0; return Math.hypot(v[0].x - v[1].x, v[0].y - v[1].y); }
   function closestScreen(el) { while (el) { if (el.id === 'tvScreen') return true; el = el.parentElement; } return false; }
+
+  // ---------- AR tap-to-place: drop the TV where you tap the floor ----------
+  var placing = false, reticle = null, placeHintEl = null, rx = 0, ry = 0, arPlacedOnce = false;
+  function ensurePlaceEls() {
+    if (reticle) return;
+    reticle = document.createElement('div'); reticle.id = 'placeReticle'; reticle.setAttribute('aria-hidden', 'true');
+    reticle.innerHTML = '<span></span>';
+    placeHintEl = document.createElement('div'); placeHintEl.id = 'placeHint';
+    document.body.appendChild(reticle); document.body.appendChild(placeHintEl);
+  }
+  function enterPlace() {
+    if (!camOn) { toast(t().camDenied ? '' : ''); return; } // AR only
+    ensurePlaceEls();
+    placing = true;
+    document.body.classList.add('placing');
+    placeHintEl.textContent = t().placeHint || 'Tap the floor to place the TV';
+    placeHintEl.hidden = false; reticle.hidden = false;
+    $('placeBtn').setAttribute('aria-pressed', 'true');
+    rx = window.innerWidth / 2; ry = window.innerHeight * 0.74; moveReticle();
+  }
+  function exitPlace() {
+    placing = false; document.body.classList.remove('placing');
+    if (reticle) reticle.hidden = true; if (placeHintEl) placeHintEl.hidden = true;
+    $('placeBtn').setAttribute('aria-pressed', 'false');
+  }
+  function moveReticle() {
+    if (!reticle) return;
+    rx = Math.max(24, Math.min(window.innerWidth - 24, rx));
+    ry = Math.max(window.innerHeight * 0.42, Math.min(window.innerHeight * 0.95, ry));
+    reticle.style.left = rx + 'px'; reticle.style.top = ry + 'px';
+  }
+  function dropHere() {
+    var W = window.innerWidth, H = window.innerHeight;
+    tvX = Math.round(rx - W / 2);
+    var ratio = Math.max(0, Math.min(1, (ry / H - 0.42) / 0.5)); // 0 far(high) .. 1 near(low)
+    setScale(0.44 + ratio * 0.5);                                  // tap lower → bigger/nearer
+    tvY = Math.round(ry - H * 0.80);                               // vertical offset from the floor line
+    try { localStorage.setItem('consola.tvX', tvX); localStorage.setItem('consola.tvY', tvY); } catch (e) {}
+    applyTv();
+    exitPlace(); toast(t().placed || 'TV placed');
+  }
+  $('placeBtn').addEventListener('click', function () { if (placing) exitPlace(); else enterPlace(); });
+  // pointer: hover/drag moves the reticle; tap on the floor drops the TV.
+  document.addEventListener('pointermove', function (e) { if (!placing) return; rx = e.clientX; ry = e.clientY; moveReticle(); });
+  document.addEventListener('click', function (e) {
+    if (!placing) return;
+    var el = e.target;
+    while (el) { if (el.classList && (el.classList.contains('topbar') || el.classList.contains('library') || el.classList.contains('hintbar') || el.id === 'tvScreen' || el.tagName === 'BUTTON' || el.tagName === 'INPUT')) return; el = el.parentElement; }
+    rx = e.clientX; ry = e.clientY; moveReticle(); dropHere();
+  }, true);
+  // expose current placement so the 3D pets can follow the TV base.
+  window.__CONSOLA_TV = function () { return { x: tvX, y: tvY, s: tvScale }; };
+  if (TEST) { window.__arTest = function () { camOn = true; bg.classList.add('cam-on'); $('placeBtn').hidden = false; enterPlace(); }; }
 
   // ---------- touch controls (on-screen pad) ----------
   var touch = $('touchpad'), toggle = $('touchToggle');

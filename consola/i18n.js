@@ -55,7 +55,86 @@
     ['st', 'Sesotho', 'sesotho sotho'], ['sn', 'chiShona', 'shona'],
     ['rw', 'Kinyarwanda', 'kinyarwanda'], ['mg', 'Malagasy', 'malagasy'],
     ['sm', 'Gagana Samoa', 'samoan'], ['mi', 'Māori', 'maori'],
-    ['haw', 'ʻŌlelo Hawaiʻi', 'hawaiian'], ['la', 'Latina', 'latin']
+    ['haw', 'ʻŌlelo Hawaiʻi', 'hawaiian'], ['la', 'Latina', 'latin'],
+    // ---- expanded long tail (native name, romanized alias, rtl?) ----
+    ['eo', 'Esperanto', 'esperanto'], ['ia', 'Interlingua', 'interlingua'], ['ie', 'Interlingue', 'interlingue'],
+    ['io', 'Ido', 'ido'], ['vo', 'Volapük', 'volapuk'], ['jbo', 'Lojban', 'lojban'], ['tlh', 'tlhIngan Hol', 'klingon'],
+    ['fy', 'Frysk', 'frisian'], ['gd', 'Gàidhlig', 'scottish gaelic'], ['kw', 'Kernewek', 'cornish'],
+    ['br', 'Brezhoneg', 'breton'], ['oc', 'Occitan', 'occitan'], ['co', 'Corsu', 'corsican'],
+    ['sc', 'Sardu', 'sardinian'], ['rm', 'Rumantsch', 'romansh'], ['fur', 'Furlan', 'friulian'],
+    ['lij', 'Ligure', 'ligurian'], ['vec', 'Vèneto', 'venetian'], ['nap', 'Napulitano', 'neapolitan'],
+    ['scn', 'Sicilianu', 'sicilian'], ['lmo', 'Lombard', 'lombard'], ['pms', 'Piemontèis', 'piedmontese'],
+    ['egl', 'Emiliàn', 'emilian'], ['lld', 'Ladin', 'ladin'], ['wa', 'Walon', 'walloon'],
+    ['an', 'Aragonés', 'aragonese'], ['ast', 'Asturianu', 'asturian'], ['ext', 'Estremeñu', 'extremaduran'],
+    ['mwl', 'Mirandés', 'mirandese'], ['fo', 'Føroyskt', 'faroese'], ['kl', 'Kalaallisut', 'greenlandic'],
+    ['gsw', 'Schwiizerdütsch', 'swiss german'], ['bar', 'Boarisch', 'bavarian'], ['ksh', 'Kölsch', 'kolsch'],
+    ['nds', 'Plattdüütsch', 'low german'], ['stq', 'Seeltersk', 'saterland frisian'], ['frr', 'Nordfriisk', 'north frisian'],
+    ['li', 'Limburgs', 'limburgish'], ['vls', 'West-Vlams', 'west flemish'], ['zea', 'Zeêuws', 'zeelandic'],
+    ['se', 'Davvisámegiella', 'northern sami'], ['smn', 'anarâškielâ', 'inari sami'], ['sms', 'nuõrttsääʹmǩiõll', 'skolt sami'],
+    ['csb', 'Kaszëbsczi', 'kashubian'], ['hsb', 'Hornjoserbsce', 'upper sorbian'], ['dsb', 'Dolnoserbski', 'lower sorbian'],
+    ['szl', 'Ślōnski', 'silesian'], ['rue', 'Русиньскый', 'rusyn'], ['cu', 'Словѣньскъ', 'church slavonic'],
+    ['sh', 'Srpskohrvatski', 'serbo-croatian'], ['cnr', 'Crnogorski', 'montenegrin'], ['vro', 'Võro', 'voro'],
+    // Caucasus / Turkic / Uralic
+    ['ab', 'Аҧсшәа', 'abkhaz'], ['os', 'Ирон æвзаг', 'ossetian'], ['ce', 'Нохчийн мотт', 'chechen'],
+    ['av', 'МагӀарул мацӀ', 'avar'], ['lez', 'Лезги', 'lezgian'], ['kbd', 'Адыгэбзэ', 'kabardian'],
+    ['ady', 'Адыгабзэ', 'adyghe'], ['krc', 'Къарачай-малкъар', 'karachay balkar'], ['cv', 'Чӑвашла', 'chuvash'],
+    ['tt', 'Татарча', 'tatar'], ['ba', 'Башҡортса', 'bashkir'], ['sah', 'Саха тыла', 'yakut sakha'],
+    ['tyv', 'Тыва дыл', 'tuvan'], ['bua', 'Буряад', 'buryat'], ['xal', 'Хальмг', 'kalmyk'],
+    ['alt', 'Алтай тил', 'altai'], ['kv', 'Коми кыв', 'komi'], ['udm', 'Удмурт кыл', 'udmurt'],
+    ['myv', 'Эрзянь кель', 'erzya'], ['mdf', 'Мокшень кяль', 'moksha'], ['mhr', 'Олык марий', 'mari'],
+    ['kjh', 'Хакас тілі', 'khakas'], ['nog', 'Ногай тили', 'nogai'], ['kaa', 'Qaraqalpaqsha', 'karakalpak'],
+    // South / Southeast Asia
+    ['as', 'অসমীয়া', 'assamese'], ['or', 'ଓଡ଼ିଆ', 'odia oriya'], ['sa', 'संस्कृतम्', 'sanskrit'],
+    ['mai', 'मैथिली', 'maithili'], ['bho', 'भोजपुरी', 'bhojpuri'], ['awa', 'अवधी', 'awadhi'],
+    ['hne', 'छत्तीसगढ़ी', 'chhattisgarhi'], ['mag', 'मगही', 'magahi'], ['raj', 'राजस्थानी', 'rajasthani'],
+    ['new', 'नेपाल भाषा', 'newar'], ['gom', 'कोंकणी', 'konkani'], ['doi', 'डोगरी', 'dogri'],
+    ['bpy', 'বিষ্ণুপ্রিয়া', 'bishnupriya'], ['sat', 'ᱥᱟᱱᱛᱟᱲᱤ', 'santali'], ['brx', 'बड़ो', 'bodo'],
+    ['mni', 'ꯃꯩꯇꯩꯂꯣꯟ', 'meitei manipuri'], ['lus', 'Mizo ṭawng', 'mizo'], ['kha', 'Ka Ktien Khasi', 'khasi'],
+    ['grt', 'A·chik', 'garo'], ['bo', 'བོད་སྐད་', 'tibetan'], ['dz', 'རྫོང་ཁ', 'dzongkha'],
+    ['ii', 'ꆈꌠꉙ', 'nuosu yi'], ['za', 'Vahcuengh', 'zhuang'], ['yue', '粵語', 'cantonese'],
+    ['hak', '客家話', 'hakka'], ['nan', '閩南語', 'hokkien min nan'], ['wuu', '吳語', 'wu'],
+    ['min', 'Minangkabau', 'minangkabau'], ['ban', 'Basa Bali', 'balinese'], ['ace', 'Acèh', 'acehnese'],
+    ['bjn', 'Banjar', 'banjarese'], ['bug', 'Basa Ugi', 'buginese'], ['mad', 'Madhura', 'madurese'],
+    ['sas', 'Sasak', 'sasak'], ['gor', 'Bahasa Hulontalo', 'gorontalo'], ['nia', 'Li Niha', 'nias'],
+    ['tet', 'Tetun', 'tetum'], ['shn', 'လိၵ်ႈတႆး', 'shan'], ['mnw', 'ဘာသာ မန်', 'mon'],
+    // Middle East / RTL
+    ['yi', 'ייִדיש', 'yiddish', true], ['ckb', 'کوردیی ناوەندی', 'sorani kurdish', true],
+    ['sdh', 'کوردی خوارگ', 'southern kurdish', true], ['dv', 'ދިވެހި', 'dhivehi maldivian', true],
+    ['nqo', 'ߒߞߏ', 'nko', true], ['syr', 'ܣܘܪܝܝܐ', 'syriac assyrian', true], ['arc', 'ܐܪܡܝܐ', 'aramaic', true],
+    ['prs', 'دری', 'dari', true], ['haz', 'هزارگی', 'hazaragi', true], ['bal', 'بلۏچی', 'balochi', true],
+    ['glk', 'گیلکی', 'gilaki', true], ['mzn', 'مازرونی', 'mazanderani', true], ['azb', 'تۆرکجه', 'south azerbaijani', true],
+    ['pnb', 'پنجابی', 'western punjabi shahmukhi', true], ['skr', 'سرائیکی', 'saraiki', true],
+    ['lrc', 'لۊری شومالی', 'northern luri', true], ['ks', 'کٲشُر', 'kashmiri', true], ['rhg', 'Ruáinga', 'rohingya', true],
+    ['arz', 'مصرى', 'egyptian arabic', true], ['ary', 'الدارجة', 'moroccan arabic darija', true],
+    ['acm', 'عراقي', 'iraqi arabic', true], ['afb', 'خليجي', 'gulf arabic', true], ['apc', 'شامي', 'levantine arabic', true],
+    // Africa
+    ['ti', 'ትግርኛ', 'tigrinya'], ['om', 'Afaan Oromoo', 'oromo'], ['aa', 'Qafar af', 'afar'],
+    ['tzm', 'ⵜⴰⵎⴰⵣⵉⵖⵜ', 'tamazight berber'], ['kab', 'Taqbaylit', 'kabyle'], ['shi', 'Taclḥiyt', 'shilha'],
+    ['rif', 'Tarifit', 'riffian'], ['bm', 'Bamanankan', 'bambara'], ['ee', 'Eʋegbe', 'ewe'],
+    ['tw', 'Twi', 'twi'], ['ak', 'Akan', 'akan'], ['ff', 'Fulfulde', 'fula fulani'], ['wo', 'Wolof', 'wolof'],
+    ['kg', 'Kikongo', 'kongo'], ['ln', 'Lingála', 'lingala'], ['lu', 'Tshiluba', 'luba'], ['ki', 'Gĩkũyũ', 'kikuyu'],
+    ['luo', 'Dholuo', 'luo'], ['rn', 'Ikirundi', 'rundi'], ['lg', 'Luganda', 'ganda'], ['bem', 'Ichibemba', 'bemba'],
+    ['nso', 'Sesotho sa Leboa', 'northern sotho'], ['tn', 'Setswana', 'tswana'], ['ts', 'Xitsonga', 'tsonga'],
+    ['ss', 'siSwati', 'swazi'], ['ve', 'Tshivenḓa', 'venda'], ['nr', 'isiNdebele', 'ndebele'],
+    ['xh', 'isiXhosa', 'xhosa'], ['nd', 'isiNdebele saseNyakatho', 'north ndebele'], ['gaa', 'Gã', 'ga'],
+    ['fon', 'Fɔ̀ngbè', 'fon'], ['mos', 'Mòoré', 'mossi'], ['dyu', 'Julakan', 'dyula'], ['sg', 'Sängö', 'sango'],
+    ['kr', 'Kanuri', 'kanuri'], ['dag', 'Dagbani', 'dagbani'], ['kri', 'Krio', 'krio'], ['umb', 'Umbundu', 'umbundu'],
+    ['kmb', 'Kimbundu', 'kimbundu'], ['loz', 'Silozi', 'lozi'], ['kam', 'Kĩkamba', 'kamba'], ['mer', 'Kĩmĩrũ', 'meru'],
+    ['guz', 'Ekegusii', 'gusii'], ['luy', 'Luluhia', 'luhya'], ['nyn', 'Runyankore', 'nkore'],
+    ['din', 'Thuɔŋjäŋ', 'dinka'], ['nus', 'Thok Nath', 'nuer'], ['ach', 'Lwo', 'acholi'],
+    // Americas / indigenous
+    ['qu', 'Runa Simi', 'quechua'], ['ay', 'Aymar aru', 'aymara'], ['gn', 'Avañeẽ', 'guarani'],
+    ['nah', 'Nāhuatl', 'nahuatl'], ['quc', 'Kiche', 'kiche quiche'], ['yua', 'Màaya tàan', 'yucatec maya'],
+    ['chr', 'ᏣᎳᎩ', 'cherokee'], ['nv', 'Diné bizaad', 'navajo'], ['iu', 'ᐃᓄᒃᑎᑐᑦ', 'inuktitut'],
+    ['cr', 'ᓀᐦᐃᔭᐍᐏᐣ', 'cree'], ['oj', 'Anishinaabemowin', 'ojibwe'], ['lkt', 'Lakȟótiyapi', 'lakota'],
+    ['arn', 'Mapudungun', 'mapuche'], ['gug', 'Avañeẽ paraguái', 'paraguayan guarani'],
+    // Pacific
+    ['fj', 'Na Vosa Vakaviti', 'fijian'], ['to', 'Lea faka-Tonga', 'tongan'], ['ty', 'Reo Tahiti', 'tahitian'],
+    ['mh', 'Kajin Majeḷ', 'marshallese'], ['na', 'Dorerin Naoero', 'nauruan'], ['gil', 'Taetae ni Kiribati', 'gilbertese'],
+    ['tpi', 'Tok Pisin', 'tok pisin'], ['bi', 'Bislama', 'bislama'], ['ho', 'Hiri Motu', 'hiri motu'],
+    ['ch', 'Chamoru', 'chamorro'], ['pau', 'Tekoi er a Belau', 'palauan'], ['tvl', 'Te Gana Tūvalu', 'tuvaluan'],
+    ['niu', 'Ko e vagahau Niuē', 'niuean'], ['rar', 'Māori Kūki ʻAirani', 'cook islands maori'],
+    ['hif', 'Fiji Hindi', 'fiji hindi'], ['isv', 'Medžuslovjansky', 'interslavic']
   ].map(function (a) { return { code: a[0], label: a[1], q: a[2] || '', rtl: !!a[3] }; });
 
   var EN = {
@@ -86,7 +165,8 @@
     kbHints: '← → Move · Enter Play · Esc Back · / Search', useController: 'Use your controller 🎮',
     voice: 'Speak', voiceNA: 'Voice not available here', voiceHelp: "Didn't catch that — try: 'play Snake'", voiceListen: 'Listening…', move: 'Move',
     voiceOut: 'Spoken voice', chooseVoice: 'Voice', spokenFeedback: 'Speak feedback aloud', testVoice: 'Test', close: 'Close', defaultVoice: 'Automatic (best)',
-    appsFilter: 'Apps'
+    appsFilter: 'Apps',
+    placeHint: 'Tap the floor to place the TV', moveTv: 'Move TV', placed: 'TV placed ✓'
   };
 
   var STR = {
@@ -113,7 +193,8 @@
       kbHints: '← → Mover · Enter Jugar · Esc Atrás · / Buscar', useController: 'Usa tu mando 🎮',
       voice: 'Hablar', voiceNA: 'Voz no disponible aquí', voiceHelp: "No te entendí — prueba: 'jugar Snake'", voiceListen: 'Escuchando…', move: 'Mover',
       voiceOut: 'Voz hablada', chooseVoice: 'Voz', spokenFeedback: 'Leer en voz alta', testVoice: 'Probar', close: 'Cerrar', defaultVoice: 'Automática (la mejor)',
-      appsFilter: 'Apps'
+      appsFilter: 'Apps',
+      placeHint: 'Toca el suelo para poner la tele', moveTv: 'Mover tele', placed: 'Tele colocada ✓'
     },
     pt: {
       brand: 'Consola Nebula',

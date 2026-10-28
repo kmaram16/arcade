@@ -148,6 +148,11 @@ import * as THREE from './vendor/three.module.js';
     var dt = clock.getDelta();
     var ar = $('bg') && $('bg').classList.contains('cam-on');
     if (roomGroup) roomGroup.visible = !ar; // AR: show the real room, keep pets + shadow
+    // pets follow the TV's placed position (x) and size (s)
+    var a = (window.__CONSOLA_TV && window.__CONSOLA_TV()) || { x: 0, y: 0, s: 0.6 };
+    var wx = (a.x || 0) * 0.006, sp = 2.25 * (0.82 + (a.s || 0.6) * 0.42), ps = 0.68 + (a.s || 0.6) * 0.12;
+    petDog.position.x += (wx - sp - petDog.position.x) * 0.15; petDog.scale.setScalar(ps);
+    petCat.position.x += (wx + sp - petCat.position.x) * 0.15; petCat.scale.setScalar(ps);
     if (animPets) { idle(petDog, dt); idle(petCat, dt); }
     renderer.render(scene, camera);
   }

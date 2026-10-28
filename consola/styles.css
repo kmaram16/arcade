@@ -487,3 +487,19 @@ body.in-game .hintbar { background: linear-gradient(0deg, rgba(6,7,15,.75), tran
    pets and the DOM fallback room; keep the floor-standing CSS TV + live screen. */
 body.webgl-on .pet { display: none !important; }
 body.webgl-on .room { display: none !important; }
+
+/* ---------- AR tap-to-place reticle + hint ---------- */
+#placeReticle { position: fixed; z-index: 44; transform: translate(-50%, -50%); pointer-events: none; width: 96px; height: 58px; }
+#placeReticle span { position: absolute; inset: 0; border: 3px solid var(--accent); border-radius: 50%;
+  box-shadow: 0 0 22px var(--accent), inset 0 0 16px rgba(91,214,255,.45); transform: perspective(220px) rotateX(62deg); animation: pulse 1.2s infinite; }
+#placeReticle::after { content: '📺'; position: absolute; left: 50%; top: -30px; transform: translateX(-50%); font-size: 28px; filter: drop-shadow(0 3px 7px #000); }
+#placeHint { position: fixed; z-index: 45; left: 50%; top: 15%; transform: translateX(-50%);
+  background: rgba(8,10,20,.92); border: 1px solid var(--accent); color: #fff; padding: 11px 20px; border-radius: 999px;
+  font-weight: 700; box-shadow: 0 0 26px var(--accent); max-width: 90vw; text-align: center; }
+body.placing { cursor: crosshair; }
+#placeBtn[aria-pressed="true"] { background: rgba(91,214,255,.25); border-color: var(--accent); }
+
+/* ---------- richer glass screen glare (more realistic) ---------- */
+.tv-glare { background:
+  linear-gradient(130deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.04) 24%, transparent 46%),
+  radial-gradient(120% 80% at 80% -10%, rgba(140,180,255,.14), transparent 55%); }

@@ -85,7 +85,8 @@
     modeConsoleHow: 'Couch + controller on a big screen', modePcHow: 'Keyboard & mouse on a computer',
     kbHints: '← → Move · Enter Play · Esc Back · / Search', useController: 'Use your controller 🎮',
     voice: 'Speak', voiceNA: 'Voice not available here', voiceHelp: "Didn't catch that — try: 'play Snake'", voiceListen: 'Listening…', move: 'Move',
-    voiceOut: 'Spoken voice', chooseVoice: 'Voice', spokenFeedback: 'Speak feedback aloud', testVoice: 'Test', close: 'Close', defaultVoice: 'Automatic (best)'
+    voiceOut: 'Spoken voice', chooseVoice: 'Voice', spokenFeedback: 'Speak feedback aloud', testVoice: 'Test', close: 'Close', defaultVoice: 'Automatic (best)',
+    appsFilter: 'Apps'
   };
 
   var STR = {
@@ -111,7 +112,8 @@
       modeConsoleHow: 'Sofá + mando en una pantalla grande', modePcHow: 'Teclado y ratón en un ordenador',
       kbHints: '← → Mover · Enter Jugar · Esc Atrás · / Buscar', useController: 'Usa tu mando 🎮',
       voice: 'Hablar', voiceNA: 'Voz no disponible aquí', voiceHelp: "No te entendí — prueba: 'jugar Snake'", voiceListen: 'Escuchando…', move: 'Mover',
-      voiceOut: 'Voz hablada', chooseVoice: 'Voz', spokenFeedback: 'Leer en voz alta', testVoice: 'Probar', close: 'Cerrar', defaultVoice: 'Automática (la mejor)'
+      voiceOut: 'Voz hablada', chooseVoice: 'Voz', spokenFeedback: 'Leer en voz alta', testVoice: 'Probar', close: 'Cerrar', defaultVoice: 'Automática (la mejor)',
+      appsFilter: 'Apps'
     },
     pt: {
       brand: 'Consola Nebula',

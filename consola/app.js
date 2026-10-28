@@ -202,13 +202,16 @@
     return Object.keys(set).sort();
   }
 
+  function hasApps() { return GAMES.some(function (g) { return g.kind === 'app'; }); }
   function renderFilters() {
     var box = $('filters'); box.innerHTML = '';
-    var cats = ['all'].concat(categories());
+    var cats = ['all'];
+    if (hasApps()) cats.push('__apps__');
+    cats = cats.concat(categories());
     cats.forEach(function (c) {
       var b = document.createElement('button');
       b.className = 'chip' + (c === activeFilter ? ' on' : '');
-      b.textContent = c === 'all' ? t().all : c;
+      b.textContent = c === 'all' ? t().all : (c === '__apps__' ? (t().appsFilter || 'Apps') : c);
       b.setAttribute('role', 'tab');
       b.addEventListener('click', function () { activeFilter = c; renderFilters(); renderGrids(); });
       box.appendChild(b);
@@ -216,7 +219,8 @@
   }
 
   function matches(g) {
-    if (activeFilter !== 'all' && g.category !== activeFilter) return false;
+    if (activeFilter === '__apps__') { if (g.kind !== 'app') return false; }
+    else if (activeFilter !== 'all' && g.category !== activeFilter) return false;
     if (query) {
       var hay = (g.name + ' ' + (g.category || '')).toLowerCase();
       if (hay.indexOf(query) < 0) return false;

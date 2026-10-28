@@ -481,3 +481,9 @@ body.in-game .hintbar { background: linear-gradient(0deg, rgba(6,7,15,.75), tran
 .tts-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 .btn-small.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--card-br); }
 #voiceSel { width: 100%; }
+
+/* ---------- WebGL (three.js) ambience: a lit room + real 3D pets + soft
+   shadows render in #gl (z-index 4) BEHIND the CSS TV. Replace the flat CSS
+   pets and the DOM fallback room; keep the floor-standing CSS TV + live screen. */
+body.webgl-on .pet { display: none !important; }
+body.webgl-on .room { display: none !important; }

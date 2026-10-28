@@ -753,7 +753,65 @@
   function stopVoiceUI() { listening = false; $('micBtn').classList.remove('on'); setTimeout(function () { voiceIndicator(false); }, 1200); }
 
   function norm(s) { return (s || '').toLowerCase().normalize ? (s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '') : (s || '').toLowerCase(); }
-  function speak(txt) { try { if (TEST) return; var u = new SpeechSynthesisUtterance(txt); u.lang = srLang(); window.speechSynthesis.speak(u); } catch (e) {} }
+
+  // ---------- natural spoken feedback (Speech Synthesis) ----------
+  var synth = window.speechSynthesis || null;
+  var voicesList = [];
+  var ttsOn = (function () { try { return localStorage.getItem('consola.tts') !== '0'; } catch (e) { return true; } })();
+  var chosenVoiceURI = (function () { try { return localStorage.getItem('consola.voice') || ''; } catch (e) { return ''; } })();
+  function loadVoices() { try { voicesList = (synth && synth.getVoices()) || []; } catch (e) { voicesList = []; } }
+  if (synth) { loadVoices(); try { synth.onvoiceschanged = loadVoices; } catch (e) {} setTimeout(loadVoices, 400); setTimeout(loadVoices, 1200); }
+  // Names that signal a higher-quality / natural voice across platforms.
+  var GOOD_VOICE = /natural|neural|online|enhanced|premium|siri|google|wavenet|multilingual/i;
+  function voicesForLang(code) {
+    var base = (code || lang || 'en').slice(0, 2).toLowerCase();
+    return voicesList.filter(function (v) { return (v.lang || '').slice(0, 2).toLowerCase() === base; });
+  }
+  function bestVoice() {
+    if (!voicesList.length) return null;
+    if (chosenVoiceURI) { for (var i = 0; i < voicesList.length; i++) if (voicesList[i].voiceURI === chosenVoiceURI) return voicesList[i]; }
+    var cands = voicesForLang(lang);
+    if (!cands.length) return null; // let the browser pick a default for the lang tag
+    function score(v) {
+      var s = 0, n = v.name || '';
+      if (GOOD_VOICE.test(n)) s += 10;
+      if (v.localService === false) s += 4;         // network/premium voices are usually nicer
+      if (/female|mujer|femen/i.test(n)) s += 1;
+      if ((v.lang || '').toLowerCase() === srLang().toLowerCase()) s += 2; // exact region match
+      return s;
+    }
+    return cands.slice().sort(function (a, b) { return score(b) - score(a); })[0];
+  }
+  function speak(txt) {
+    if (!synth || !ttsOn || TEST) return;
+    try {
+      synth.cancel(); // never double-speak / overlap
+      var u = new SpeechSynthesisUtterance(txt);
+      u.lang = srLang(); u.rate = 1.0; u.pitch = 1.0; u.volume = 1.0;
+      var v = bestVoice(); if (v) { u.voice = v; u.lang = v.lang || u.lang; }
+      synth.speak(u);
+    } catch (e) {}
+  }
+  function setTtsIcon() { var b = $('ttsBtn'); if (b) b.textContent = ttsOn ? '🔊' : '🔇'; }
+  // Settings: toggle spoken feedback + choose a voice (remembered).
+  $('ttsBtn').addEventListener('click', function () {
+    var s = t();
+    var cands = voicesForLang(lang);
+    var opts = '<option value="">' + esc(s.defaultVoice || 'Automatic') + '</option>' +
+      cands.map(function (v) { return '<option value="' + esc(v.voiceURI) + '"' + (v.voiceURI === chosenVoiceURI ? ' selected' : '') + '>' +
+        esc(v.name) + (GOOD_VOICE.test(v.name) ? ' ★' : '') + '</option>'; }).join('');
+    var ov = modal(
+      '<h2>' + esc(s.voiceOut || 'Spoken voice') + '</h2>' +
+      '<label class="tts-row"><input type="checkbox" id="ttsChk"' + (ttsOn ? ' checked' : '') + '> ' + esc(s.spokenFeedback || 'Speak feedback') + '</label>' +
+      '<select id="voiceSel" class="search" ' + (cands.length ? '' : 'disabled') + '>' + opts + '</select>' +
+      '<div class="tts-actions"><button class="btn-small" id="voiceTest" type="button">' + esc(s.testVoice || 'Test') + '</button>' +
+      '<button class="btn-small ghost" id="voiceClose" type="button">' + esc(s.close || 'Close') + '</button></div>');
+    var chk = ov.querySelector('#ttsChk'), sel = ov.querySelector('#voiceSel');
+    chk.addEventListener('change', function () { ttsOn = chk.checked; try { localStorage.setItem('consola.tts', ttsOn ? '1' : '0'); } catch (e) {} setTtsIcon(); });
+    sel.addEventListener('change', function () { chosenVoiceURI = sel.value; try { localStorage.setItem('consola.voice', chosenVoiceURI); } catch (e) {} });
+    ov.querySelector('#voiceTest').addEventListener('click', function () { var was = ttsOn; ttsOn = true; speak(t().brand || 'Nebula Console'); ttsOn = was; });
+    ov.querySelector('#voiceClose').addEventListener('click', function () { ov.remove(); });
+  });
   function fb(txt) { voiceIndicator(true, txt); toast(txt); speak(txt); setTimeout(function () { voiceIndicator(false); }, 2000); }
 
   function findGame(q) {
@@ -843,6 +901,8 @@
   setMode(savedMode() || 'console', false);
   applyTv();
   loadProfile();
+  setTtsIcon();
+  if (!synth) { var tb = $('ttsBtn'); if (tb) tb.hidden = true; } // no synthesis → hide the setting
   tickClock(); setInterval(tickClock, 15000);
   setupPets();
   applyLang();

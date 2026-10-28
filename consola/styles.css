@@ -465,12 +465,19 @@ body.in-game .pet, body.in-game .car-hint, body.in-game .floor-shadow,
 body.in-game .console-unit, body.in-game .tv-brand, body.in-game .tv-side,
 body.in-game .tv-base-face { display: none !important; }
 body.in-game .stage { position: fixed; inset: 0; padding: 0; perspective: none; z-index: 40;
-  background: #000; place-items: stretch; }
+  background: #000; place-items: stretch; align-content: stretch; min-height: 0; }
 body.in-game .tv-wrap { width: 100% !important; height: 100%; transform: none !important; }
 body.in-game .tv, body.in-game .tv-bezel { height: 100%; }
 body.in-game .tv-bezel { padding: 0; border: 0; border-radius: 0; box-shadow: none; background: #000; }
 body.in-game .tv-bezel::before { display: none; }
 body.in-game .tv-screen { position: absolute; inset: 0; aspect-ratio: auto; height: 100%; border-radius: 0; }
 body.in-game .tv-scanlines, body.in-game .tv-glare { display: none; }
-body.in-game .tv-home { z-index: 50; top: 12px; left: 12px; }
+body.in-game .tv-home { position: fixed; z-index: 2147483000; top: 12px; left: 12px; }
 body.in-game .hintbar { background: linear-gradient(0deg, rgba(6,7,15,.75), transparent); border-top: 0; }
+
+/* ---------- TTS voice settings ---------- */
+.tts-row { display: flex; align-items: center; gap: 8px; justify-content: center; margin: 6px 0 12px; font-weight: 600; }
+.tts-row input { width: 18px; height: 18px; accent-color: var(--accent); }
+.tts-actions { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+.btn-small.ghost { background: var(--card); color: var(--ink); border: 1px solid var(--card-br); }
+#voiceSel { width: 100%; }

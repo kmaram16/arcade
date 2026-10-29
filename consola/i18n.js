@@ -167,7 +167,12 @@
     voiceOut: 'Spoken voice', chooseVoice: 'Voice', spokenFeedback: 'Speak feedback aloud', testVoice: 'Test', close: 'Close', defaultVoice: 'Automatic (best)',
     appsFilter: 'Apps',
     placeHint: 'Tap the floor to place the TV', moveTv: 'Move TV', placed: 'TV placed ✓',
-    bgRoom: 'Room', bgSpace: 'Space'
+    bgRoom: 'Room', bgSpace: 'Space',
+    dlTitle: '⬇️ Download the app (Windows / Android)',
+    dlIntro: 'Install Nebula Console on your device. It opens the same console in its own window — with controller, camera (AR) and voice.',
+    dlWin: '🪟 Windows (.exe)', dlAndroid: '🤖 Android (.apk)',
+    dlPwa: 'On phone or Chrome you can also “Install app” from the ⬇︎ button or the browser menu (no download).',
+    dlSafe: 'These files are safe but unsigned. Windows: if SmartScreen appears, tap “More info” → “Run anyway”. Android: allow install from this source / “Install anyway” if Play Protect asks.'
   };
 
   var STR = {
@@ -196,7 +201,12 @@
       voiceOut: 'Voz hablada', chooseVoice: 'Voz', spokenFeedback: 'Leer en voz alta', testVoice: 'Probar', close: 'Cerrar', defaultVoice: 'Automática (la mejor)',
       appsFilter: 'Apps',
       placeHint: 'Toca el suelo para poner la tele', moveTv: 'Mover tele', placed: 'Tele colocada ✓',
-      bgRoom: 'Sala', bgSpace: 'Espacio'
+      bgRoom: 'Sala', bgSpace: 'Espacio',
+      dlTitle: '⬇️ Descargar app (Windows / Android)',
+      dlIntro: 'Instala Consola Nebula en tu dispositivo. Abre la misma consola en su propia ventana — con mando, cámara (RA) y voz.',
+      dlWin: '🪟 Windows (.exe)', dlAndroid: '🤖 Android (.apk)',
+      dlPwa: 'En el móvil o en Chrome también puedes “Instalar app” con el botón ⬇︎ o el menú del navegador (sin descargar nada).',
+      dlSafe: 'Los archivos son seguros pero no están firmados. Windows: si aparece SmartScreen, pulsa “Más información” → “Ejecutar de todas formas”. Android: permite instalar desde este origen / “Instalar de todas formas” si Play Protect pregunta.'
     },
     pt: {
       brand: 'Consola Nebula',

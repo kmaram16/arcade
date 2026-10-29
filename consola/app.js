@@ -30,6 +30,9 @@
     $('pasteSummary').textContent = s.pasteSummary;
     $('pasteHelp').textContent = s.pasteHelp;
     $('pasteGo').textContent = s.pasteGo;
+    var dl = function (id, v) { var el = $(id); if (el && v) el.textContent = v; };
+    dl('dlTitle', s.dlTitle); dl('dlIntro', s.dlIntro); dl('dlWin', s.dlWin);
+    dl('dlAndroid', s.dlAndroid); dl('dlPwa', s.dlPwa); dl('dlSafe', s.dlSafe);
     $('rotateMsg').textContent = s.rotate;
     $('carHint').textContent = s.carHint || '';
     var ml = $('micLabel'); if (ml) ml.textContent = s.voice || 'Speak';

@@ -247,6 +247,19 @@ body.in-game .tv-wrap { width: calc(min(96vw, 1000px) * var(--tv-sg, .96));
 .btn-small { border: 0; border-radius: 10px; padding: 11px 16px; font-weight: 700; color: #06070f;
   background: linear-gradient(90deg, var(--accent), var(--accent2)); }
 
+/* ---------- Download the native apps ---------- */
+.downloads { margin: 14px 4px 10px; border: 1px solid var(--card-br); border-radius: 12px; padding: 10px 14px;
+  background: rgba(16,20,38,.4); }
+.downloads summary { cursor: pointer; font-weight: 800; color: var(--accent); }
+.dl-intro { color: var(--muted); font-size: 12.5px; margin: 8px 0 10px; }
+.dl-buttons { display: flex; flex-wrap: wrap; gap: 10px; margin: 6px 0 10px; }
+.btn-dl { text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 10px; padding: 11px 18px; font-weight: 800; color: #06070f;
+  background: linear-gradient(90deg, var(--accent), var(--accent2)); }
+.btn-dl:hover { filter: brightness(1.08); }
+.dl-pwa { color: var(--muted); font-size: 12px; margin: 4px 0; }
+.dl-safe { color: var(--muted); font-size: 11.5px; margin: 6px 0 2px; opacity: .85; line-height: 1.5; }
+
 /* ---------- Touch controls ---------- */
 .touch-toggle { position: fixed; z-index: 30; right: 14px; bottom: 14px; width: 52px; height: 52px;
   border-radius: 50%; border: 1px solid var(--accent); background: rgba(8,10,20,.8); color: var(--accent);

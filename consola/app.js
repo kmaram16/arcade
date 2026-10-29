@@ -503,7 +503,7 @@
       if (typing) return;
       if (current) { e.preventDefault(); goHome(); } return;
     }
-    if (current) return; // let the focused game have everything else
+    if (current) { if (!current.external) focusFrame(); return; } // self-heal focus, let the game have the key
     if (typing) return;
     if (k === 'ArrowLeft' || k === 'a' || k === 'A') { e.preventDefault(); carMove(-1); }
     else if (k === 'ArrowRight' || k === 'd' || k === 'D') { e.preventDefault(); carMove(1); }
@@ -536,6 +536,14 @@
   function edge(btn, pressed) { var was = padState[btn]; padState[btn] = pressed; return pressed && !was; }
   function rumble(gp) { try { gp.vibrationActuator.playEffect('dual-rumble', { duration: 130, strongMagnitude: 0.35, weakMagnitude: 0.18 }); } catch (e) {} }
   function pollPads() {
+    // Keep the launched game's iframe focused so keyboard input (e.g. Astray's
+    // arrow keys) always reaches it, even if focus drifts back to the page.
+    if (current && !current.external) {
+      var ae = document.activeElement;
+      if (!ae || ae === document.body || ae === document.documentElement) {
+        var gf = $('gameFrame'); if (gf && !gf.hidden) { try { gf.focus(); } catch (e) {} }
+      }
+    }
     var pads = navigator.getGamepads ? navigator.getGamepads() : [];
     var gp = null; for (var i = 0; i < pads.length; i++) if (pads[i]) { gp = pads[i]; break; }
     if (gp) {

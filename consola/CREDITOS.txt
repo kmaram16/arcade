@@ -4,13 +4,19 @@ Nebula Console — créditos / credits
 3D engine
 - three.js r162 (MIT License) — https://threejs.org  (vendored: vendor/three.module.js, GLTFLoader.js, BufferGeometryUtils.js)
 
-3D animal models (vendor/*.glb)
-- Dog mascot: "Fox" low-poly model — model © PixelMannen, released CC0 (public domain);
-  rigging & animations © tomkranis, licensed CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
-  Source: Khronos glTF Sample Models (https://github.com/KhronosGroup/glTF-Sample-Assets, Models/Fox).
-  Used here as the dog mascot, standing beside the console; only the idle ("Survey") clip is played.
+3D environment / reflections
+- RoomEnvironment (three.js examples, MIT) — procedural studio env map (vendor/RoomEnvironment.js)
+  for PBR reflections/lighting on the pets. No external HDRI downloaded.
 
-- Rabbit mascot: original procedural model generated in three.js by KMM (no external asset).
+3D animal mascots (all original procedural three.js by KMM — no external/paid assets)
+- Dog mascot: a procedural German Shepherd (black-&-tan coat with saddle, upright triangular
+  ears, long black muzzle, wet eyes, bushy tail). No assets copied from any game.
+  (No license-clear free CC0/CC-BY rigged German Shepherd / realistic dog GLB was available;
+  all found were paid. The earlier CC0 "Fox" GLB is still vendored at vendor/Fox.glb but is no
+  longer loaded — the dog is now the procedural shepherd. Fox: model © PixelMannen CC0,
+  anim © tomkranis CC-BY 4.0, Khronos glTF-Sample-Assets, if ever re-enabled.)
+- Rabbit mascot: a procedural realistic rabbit (natural agouti brown/grey/white coat variants,
+  darker back + lighter belly, dark-tipped ears, pink inner ears, dark nose, wet eyes, whiskers).
   (No license-clear free CC0/CC-BY rigged rabbit GLB was available; all found were paid.)
 
 Room + space backgrounds: original procedural three.js scenes by KMM.

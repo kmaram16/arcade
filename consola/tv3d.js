@@ -50,13 +50,13 @@ import * as THREE from './vendor/three.module.js';
     clock = new THREE.Clock();
     raycaster = new THREE.Raycaster();
 
+    loadEnv();   // PBR environment reflections/ambient (lazy, with the 3D layer)
     buildLights(c);
     buildRoom();
     buildSpace();
     buildShadowCatcher();
-    petDog = makePet('dog'); petDog.position.set(-2.3, 0, 0.6); petDog.rotation.y = 0.55; scene.add(petDog);
+    petDog = makeShepherd(); petDog.position.set(-2.3, 0, 0.6); petDog.rotation.y = 0.5; scene.add(petDog);
     petCat = makeRabbit(); petCat.position.set(2.3, 0, 0.6); petCat.rotation.y = -0.4; scene.add(petCat);
-    loadDogModel(); // upgrade the dog to a rigged glTF model (fallback: procedural)
 
     window.addEventListener('resize', onResize);
     document.body.addEventListener('pointerdown', onPointer, true);
@@ -66,10 +66,31 @@ import * as THREE from './vendor/three.module.js';
     renderer.setAnimationLoop(frame);
   }
 
+  // PBR environment map (procedural studio) for realistic reflections + ambient.
+  function loadEnv() {
+    import('./vendor/RoomEnvironment.js').then(function (m) {
+      try {
+        var pmrem = new THREE.PMREMGenerator(renderer);
+        var env = pmrem.fromScene(new m.RoomEnvironment(), 0.04);
+        scene.environment = env.texture; pmrem.dispose();
+      } catch (e) {}
+    }).catch(function () {});
+  }
+
+  // Fur-like material: physical with soft sheen (fur rim) on high tier; standard on low.
+  function furMat(color, opt) {
+    opt = opt || {};
+    if (TIER === 'high') return new THREE.MeshPhysicalMaterial(Object.assign({
+      color: color, roughness: 0.95, metalness: 0, sheen: 0.6,
+      sheenColor: new THREE.Color(0xfff2e6), sheenRoughness: 0.85, envMapIntensity: 0.55
+    }, opt));
+    return new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.95, metalness: 0, envMapIntensity: 0.5 }, opt));
+  }
+
   function buildLights(c) {
-    scene.add(new THREE.HemisphereLight(0xbcd0ff, 0x202435, 0.6));
-    scene.add(new THREE.AmbientLight(0x4a5a8c, 0.35));
-    keyLight = new THREE.DirectionalLight(0xfff0e0, 2.2);
+    scene.add(new THREE.HemisphereLight(0xbcd0ff, 0x202435, 0.38));
+    scene.add(new THREE.AmbientLight(0x4a5a8c, 0.22));
+    keyLight = new THREE.DirectionalLight(0xfff2e2, 2.1);
     keyLight.position.set(3.5, 6.5, 4.5);
     if (c.shadows) {
       keyLight.castShadow = true;
@@ -80,7 +101,8 @@ import * as THREE from './vendor/three.module.js';
       keyLight.shadow.bias = -0.0005; keyLight.shadow.radius = 4;
     }
     scene.add(keyLight);
-    var fill = new THREE.DirectionalLight(0x6a8cff, 0.55); fill.position.set(-4, 3, 2); scene.add(fill);
+    var fill = new THREE.DirectionalLight(0x6a8cff, 0.5); fill.position.set(-4, 3, 2); scene.add(fill);
+    var rim = new THREE.DirectionalLight(0xbfe0ff, 0.9); rim.position.set(-2, 5, -6); scene.add(rim); // back rim → fur edge highlight
     var glow = new THREE.PointLight(0x7c5cff, 0.5, 14); glow.position.set(0, 2.2, 1.5); scene.add(glow);
   }
 
@@ -149,48 +171,98 @@ import * as THREE from './vendor/three.module.js';
     scene.add(spaceGroup); spaceGroup.visible = false;
   }
 
-  // ---- procedural rabbit (realistic sitting bunny) ----
+  // ---- procedural rabbit (realistic, natural agouti coat; brown/grey/white) ----
   function makeRabbit() {
     var g = new THREE.Group();
-    var coat = new THREE.MeshStandardMaterial({ color: 0xe7e1d6, roughness: 0.96, metalness: 0 }); // soft white-grey fur
-    var belly = new THREE.MeshStandardMaterial({ color: 0xf5f1ea, roughness: 0.96 });
-    var pink = new THREE.MeshStandardMaterial({ color: 0xf2bcc6, roughness: 0.85 });
-    var dark = new THREE.MeshStandardMaterial({ color: 0x15151f, roughness: 0.5 });
-    var noseMat = new THREE.MeshStandardMaterial({ color: 0xe0869c, roughness: 0.6 });
+    var VAR = [
+      { back: 0x7d6447, mid: 0xa6865d, belly: 0xe6d8c0, tip: 0x53402e, nose: 0x33232a }, // brown agouti
+      { back: 0x86837b, mid: 0xa8a49b, belly: 0xe8e4dc, tip: 0x5a5751, nose: 0x322b30 }, // grey
+      { back: 0xe2d9cc, mid: 0xefe9df, belly: 0xf8f5ef, tip: 0xc8bdac, nose: 0xd98aa0 }  // white
+    ];
+    var v = VAR[(Math.random() * VAR.length) | 0];
+    var mid = furMat(v.mid), back = furMat(v.back), belly = furMat(v.belly), tipM = furMat(v.tip);
+    var pink = furMat(0xe8aeb6, { sheen: 0.3, roughness: 0.9 });
+    var dark = (TIER === 'high')
+      ? new THREE.MeshPhysicalMaterial({ color: 0x0c0a0f, roughness: 0.07, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.15 })
+      : new THREE.MeshStandardMaterial({ color: 0x0c0a0f, roughness: 0.18, metalness: 0.1, envMapIntensity: 0.9 });
+    var noseMat = new THREE.MeshStandardMaterial({ color: v.nose, roughness: 0.4, metalness: 0.05, envMapIntensity: 0.6 });
 
-    // haunches / body — big rounded rear rising to an upright chest (sitting pose)
-    var haunch = new THREE.Mesh(new THREE.SphereGeometry(0.44, 24, 18), coat); haunch.scale.set(1, 1.02, 1.0); haunch.position.set(0, 0.44, -0.04);
-    var chest = new THREE.Mesh(new THREE.SphereGeometry(0.3, 22, 16), coat); chest.scale.set(0.95, 1.05, 0.95); chest.position.set(0, 0.6, 0.2);
-    var bellyPatch = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 14), belly); bellyPatch.scale.set(0.9, 1.0, 0.7); bellyPatch.position.set(0, 0.42, 0.32);
+    // sitting silhouette: rounded haunches rising to an upright chest
+    var haunch = new THREE.Mesh(new THREE.SphereGeometry(0.44, 24, 18), mid); haunch.scale.set(1, 1.02, 1.0); haunch.position.set(0, 0.44, -0.04);
+    var chest = new THREE.Mesh(new THREE.SphereGeometry(0.3, 22, 16), mid); chest.scale.set(0.95, 1.05, 0.95); chest.position.set(0, 0.6, 0.2);
+    // darker dorsal (back) grading
+    var dorsal = new THREE.Mesh(new THREE.SphereGeometry(0.43, 22, 16), back); dorsal.scale.set(1.0, 0.56, 1.02); dorsal.position.set(0, 0.64, -0.06);
+    // lighter belly/chest patch
+    var bellyPatch = new THREE.Mesh(new THREE.SphereGeometry(0.23, 18, 14), belly); bellyPatch.scale.set(0.9, 1.0, 0.72); bellyPatch.position.set(0, 0.42, 0.33);
 
-    // head sub-group (looks around; ears/face move with it)
     var head = new THREE.Group(); head.position.set(0, 0.86, 0.26);
-    var skull = new THREE.Mesh(new THREE.SphereGeometry(0.24, 22, 16), coat); skull.scale.set(1.02, 0.98, 1.0); head.add(skull);
-    var muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.14, 18, 14), coat); muzzle.scale.set(0.9, 0.82, 1.1); muzzle.position.set(0, -0.06, 0.18); head.add(muzzle);
+    var skull = new THREE.Mesh(new THREE.SphereGeometry(0.24, 22, 16), mid); skull.scale.set(1.02, 0.98, 1.0); head.add(skull);
+    var muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.14, 18, 14), mid); muzzle.scale.set(0.9, 0.82, 1.1); muzzle.position.set(0, -0.06, 0.18); head.add(muzzle);
+    var chin = new THREE.Mesh(new THREE.SphereGeometry(0.1, 14, 12), belly); chin.scale.set(1.0, 0.6, 1.0); chin.position.set(0, -0.14, 0.14); head.add(chin);
     var nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), noseMat); nose.position.set(0, -0.04, 0.3); head.add(nose);
     var eL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), dark); eL.scale.set(1, 1.1, 1); eL.position.set(-0.13, 0.03, 0.16);
     var eR = eL.clone(); eR.position.x = 0.13; head.add(eL, eR);
-    // tiny eye glints
-    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x333333 })); gl.position.set(e.position.x + 0.02, e.position.y + 0.02, 0.2); head.add(gl); });
-    // whiskers
+    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x555555 })); gl.position.set(e.position.x + 0.025, e.position.y + 0.02, 0.2); head.add(gl); });
     var wMat = new THREE.MeshStandardMaterial({ color: 0xd8d2c8, roughness: 0.4 });
     [-1, 1].forEach(function (s) { for (var i = 0; i < 3; i++) { var w = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.32, 4), wMat); w.position.set(s * 0.09, -0.05 + i * 0.03, 0.26); w.rotation.z = Math.PI / 2; w.rotation.y = s * (0.3 + i * 0.12); head.add(w); } });
-    // long upright ears with pink inner, parented to the head
-    function ear() { var grp = new THREE.Group(); var o = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.5, 8, 12), coat); o.scale.set(0.7, 1, 1); var inr = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.4, 6, 10), pink); inr.scale.set(0.7, 1, 1); inr.position.z = 0.03; grp.add(o, inr); return grp; }
+    // ears: outer coat + darker tip + pink inner
+    function ear() {
+      var grp = new THREE.Group();
+      var o = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.5, 8, 12), mid); o.scale.set(0.7, 1, 1);
+      var tipc = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), tipM); tipc.scale.set(0.7, 0.5, 1); tipc.position.y = 0.3;
+      var inr = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.4, 6, 10), pink); inr.scale.set(0.7, 1, 1); inr.position.z = 0.03;
+      grp.add(o, tipc, inr); return grp;
+    }
     var earL = ear(); earL.position.set(-0.12, 0.3, 0.0); earL.rotation.z = 0.16; earL.rotation.x = -0.1;
     var earR = ear(); earR.position.set(0.12, 0.3, 0.0); earR.rotation.z = -0.16; earR.rotation.x = -0.1;
     head.add(earL, earR);
 
-    // front paws tucked, big hind feet along the floor
-    var pL = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), coat); pL.scale.set(1, 0.7, 1.6); pL.position.set(-0.12, 0.1, 0.34); var pR = pL.clone(); pR.position.x = 0.12;
-    var fL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.22, 6, 10), coat); fL.rotation.x = Math.PI / 2; fL.position.set(-0.2, 0.1, 0.12); var fR = fL.clone(); fR.position.x = 0.2;
-    // fluffy cottontail
+    var pL = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), mid); pL.scale.set(1, 0.7, 1.6); pL.position.set(-0.12, 0.1, 0.34); var pR = pL.clone(); pR.position.x = 0.12;
+    var fL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.22, 6, 10), mid); fL.rotation.x = Math.PI / 2; fL.position.set(-0.2, 0.1, 0.12); var fR = fL.clone(); fR.position.x = 0.2;
     var tail = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), belly); tail.position.set(0, 0.44, -0.44);
 
-    g.add(haunch, chest, bellyPatch, head, pL, pR, fL, fR, tail);
+    g.add(haunch, chest, dorsal, bellyPatch, head, pL, pR, fL, fR, tail);
     g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
     g.userData = { kind: 'rabbit', body: haunch, head: head, tail: tail, eL: eL, eR: eR, earL: earL, earR: earR, nose: nose, t: Math.random() * 6, hop: 0 };
     g.scale.setScalar(0.8);
+    return g;
+  }
+
+  // ---- procedural German Shepherd dog (black-&-tan, upright ears, long snout) ----
+  function makeShepherd() {
+    var g = new THREE.Group();
+    var tan = furMat(0xc99a58), tanLt = furMat(0xd9b071), blk = furMat(0x2a231b, { sheenColor: new THREE.Color(0x4a443a) });
+    var noseMat = (TIER === 'high') ? new THREE.MeshPhysicalMaterial({ color: 0x111016, roughness: 0.25, clearcoat: 0.8, clearcoatRoughness: 0.2, envMapIntensity: 0.8 }) : new THREE.MeshStandardMaterial({ color: 0x111016, roughness: 0.4 });
+    var eyeMat = (TIER === 'high') ? new THREE.MeshPhysicalMaterial({ color: 0x1a0f08, roughness: 0.07, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.1 }) : new THREE.MeshStandardMaterial({ color: 0x1a0f08, roughness: 0.2, metalness: 0.1 });
+    var tongueMat = new THREE.MeshStandardMaterial({ color: 0xe07d8c, roughness: 0.5 });
+    // torso with a black saddle + hindquarters (shepherd slope)
+    var body = new THREE.Mesh(new THREE.SphereGeometry(0.4, 22, 16), tan); body.scale.set(0.95, 0.9, 1.7); body.position.set(0, 0.62, -0.05);
+    var chest = new THREE.Mesh(new THREE.SphereGeometry(0.32, 20, 14), tan); chest.scale.set(0.95, 1.0, 0.9); chest.position.set(0, 0.55, 0.42);
+    var saddle = new THREE.Mesh(new THREE.SphereGeometry(0.41, 22, 16), blk); saddle.scale.set(0.99, 0.66, 1.5); saddle.position.set(0, 0.74, -0.12);
+    var rump = new THREE.Mesh(new THREE.SphereGeometry(0.34, 20, 14), tan); rump.scale.set(1, 0.92, 0.95); rump.position.set(0, 0.54, -0.62);
+    var neck = new THREE.Mesh(new THREE.CylinderGeometry(0.17, 0.22, 0.42, 14), tan); neck.position.set(0, 0.8, 0.5); neck.rotation.x = 0.55;
+    // head group (looks around)
+    var head = new THREE.Group(); head.position.set(0, 1.02, 0.64);
+    var skull = new THREE.Mesh(new THREE.SphereGeometry(0.2, 20, 14), tan); skull.scale.set(1, 0.95, 1.05); head.add(skull);
+    var cheeks = new THREE.Mesh(new THREE.SphereGeometry(0.17, 16, 12), tan); cheeks.scale.set(1.12, 0.78, 0.9); cheeks.position.set(0, -0.04, 0.05); head.add(cheeks);
+    var snout = new THREE.Mesh(new THREE.CapsuleGeometry(0.085, 0.26, 6, 10), blk); snout.rotation.x = Math.PI / 2; snout.position.set(0, -0.07, 0.3); head.add(snout);
+    var nose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), noseMat); nose.position.set(0, -0.05, 0.47); head.add(nose);
+    var tongue = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.12), tongueMat); tongue.position.set(0, -0.14, 0.4); head.add(tongue);
+    var eL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), eyeMat); eL.position.set(-0.11, 0.04, 0.17); var eR = eL.clone(); eR.position.x = 0.11; head.add(eL, eR);
+    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.013, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x555555 })); gl.position.set(e.position.x + 0.02, e.position.y + 0.02, 0.21); head.add(gl); });
+    function ear() { var e = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.32, 4), blk); e.scale.set(1, 1, 0.5); return e; }
+    var earL = ear(); earL.position.set(-0.13, 0.24, -0.02); earL.rotation.z = 0.2; earL.rotation.x = -0.08;
+    var earR = ear(); earR.position.set(0.13, 0.24, -0.02); earR.rotation.z = -0.2; earR.rotation.x = -0.08; head.add(earL, earR);
+    // legs
+    function leg(x, z) { var grp = new THREE.Group(); var up = new THREE.Mesh(new THREE.CapsuleGeometry(0.08, 0.34, 6, 8), tan); up.position.y = 0.3; var paw = new THREE.Mesh(new THREE.SphereGeometry(0.09, 10, 8), tanLt); paw.scale.set(1, 0.6, 1.4); paw.position.set(0, 0.05, 0.05); grp.add(up, paw); grp.position.set(x, 0, z); return grp; }
+    var l1 = leg(-0.2, 0.42), l2 = leg(0.2, 0.42), l3 = leg(-0.2, -0.52), l4 = leg(0.2, -0.52);
+    // bushy low tail
+    var tail = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.5, 8, 10), tan); tail.position.set(0, 0.42, -0.92); tail.rotation.x = 1.0;
+    var tailTip = new THREE.Mesh(new THREE.SphereGeometry(0.12, 12, 10), blk); tailTip.position.set(0, 0.13, -1.12);
+    g.add(body, chest, saddle, rump, neck, head, l1, l2, l3, l4, tail, tailTip);
+    g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    g.userData = { kind: 'shepherd', body: body, head: head, tail: tail, eL: eL, eR: eR, earL: earL, earR: earR, t: Math.random() * 6, hop: 0 };
+    g.scale.setScalar(0.5);
     return g;
   }
 
@@ -206,7 +278,13 @@ import * as THREE from './vendor/three.module.js';
           var model = gltf.scene;
           model.scale.setScalar(0.026);
           model.rotation.y = Math.PI * 0.16;
-          model.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) { o.material.roughness = 0.78; o.material.metalness = 0; } } });
+          model.traverse(function (o) {
+            if (!o.isMesh) return;
+            o.castShadow = true; o.receiveShadow = true;
+            // Tune the fox's own material in place (keeps its albedo texture + skinning);
+            // scene.environment adds realistic reflections.
+            if (o.material) { o.material.roughness = 0.72; o.material.metalness = 0; o.material.envMapIntensity = 0.7; o.material.needsUpdate = true; }
+          });
           while (petDog.children.length) petDog.remove(petDog.children[0]);
           petDog.add(model);
           var mixer = new THREE.AnimationMixer(model);
@@ -293,14 +371,20 @@ import * as THREE from './vendor/three.module.js';
 
   function idle(p, dt) {
     var u = p.userData; u.t += dt;
-    u.body.scale.y = 0.92 * (1 + Math.sin(u.t * 1.8) * 0.045);
+    if (u.bodyBaseY === undefined) u.bodyBaseY = u.body.scale.y;
+    u.body.scale.y = u.bodyBaseY * (1 + Math.sin(u.t * 1.8) * 0.04); // breathing (keeps proportions)
     var blink = (Math.sin(u.t * 0.7) > 0.98) ? 0.1 : 1; u.eL.scale.y = u.eR.scale.y = blink;
     u.head.rotation.z = Math.sin(u.t * 0.9) * 0.05;
     if (u.kind === 'rabbit') {
       var flick = (Math.sin(u.t * 5.3) > 0.82) ? 0.18 : 0;      // occasional ear flick
       u.earL.rotation.z = 0.16 + flick; u.earR.rotation.z = -0.16 - flick * 0.6;
-      u.nose.scale.setScalar(1 + (Math.sin(u.t * 9) > 0.55 ? 0.35 : 0)); // nose twitch
+      if (u.nose) u.nose.scale.setScalar(1 + (Math.sin(u.t * 9) > 0.55 ? 0.35 : 0)); // nose twitch
       u.head.rotation.y = Math.sin(u.t * 0.5) * 0.2;             // slow look-around
+    } else if (u.kind === 'shepherd') {
+      u.tail.rotation.z = Math.sin(u.t * 3.5) * 0.3;             // gentle wag
+      var ef = (Math.sin(u.t * 4.1) > 0.9) ? 0.14 : 0;
+      u.earL.rotation.z = 0.2 + ef; u.earR.rotation.z = -0.2 - ef;
+      u.head.rotation.y = Math.sin(u.t * 0.4) * 0.16;            // looks around
     } else if (u.tail) {
       u.tail.rotation.z = Math.sin(u.t * (u.kind === 'cat' ? 4 : 5)) * 0.55;
     }
@@ -320,7 +404,7 @@ import * as THREE from './vendor/three.module.js';
   function petSound(kind) {
     try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
       var o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination); var t0 = AC.currentTime;
-      if (kind === 'dog') { o.type = 'sawtooth'; o.frequency.setValueAtTime(210, t0); o.frequency.exponentialRampToValueAtTime(120, t0 + 0.14); g.gain.setValueAtTime(0.12, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18); o.start(t0); o.stop(t0 + 0.2); }
+      if (kind === 'dog' || kind === 'shepherd') { o.type = 'sawtooth'; o.frequency.setValueAtTime(210, t0); o.frequency.exponentialRampToValueAtTime(120, t0 + 0.14); g.gain.setValueAtTime(0.12, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18); o.start(t0); o.stop(t0 + 0.2); }
       else if (kind === 'rabbit') { o.type = 'sine'; o.frequency.setValueAtTime(900, t0); o.frequency.linearRampToValueAtTime(1180, t0 + 0.08); g.gain.setValueAtTime(0.08, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.14); o.start(t0); o.stop(t0 + 0.16); } // soft squeak
       else { o.type = 'triangle'; o.frequency.setValueAtTime(620, t0); o.frequency.linearRampToValueAtTime(880, t0 + 0.12); o.frequency.linearRampToValueAtTime(520, t0 + 0.28); g.gain.setValueAtTime(0.1, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.32); o.start(t0); o.stop(t0 + 0.34); }
     } catch (e) {}

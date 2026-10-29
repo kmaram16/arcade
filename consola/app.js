@@ -34,6 +34,7 @@
     $('carHint').textContent = s.carHint || '';
     var ml = $('micLabel'); if (ml) ml.textContent = s.voice || 'Speak';
     var pl2 = $('placeLabel'); if (pl2) pl2.textContent = s.moveTv || 'Move TV';
+    if (typeof setBgUI === 'function') setBgUI();
     applyBrand();
     setModeUI();
     renderFilters();
@@ -685,6 +686,12 @@
   }, true);
   // expose current placement so the 3D pets can follow the TV base.
   window.__CONSOLA_TV = function () { return { x: tvX, y: tvY, s: tvScale }; };
+
+  // ---------- background selector: cozy Room vs Space (camera overrides to AR) ----------
+  var bgMode = (function () { try { return localStorage.getItem('consola.bg') === 'space' ? 'space' : 'room'; } catch (e) { return 'room'; } })();
+  window.__CONSOLA_BG = function () { return bgMode; };
+  function setBgUI() { var s = t(); $('bgIcon').textContent = bgMode === 'space' ? '🌌' : '🪟'; $('bgLabel').textContent = bgMode === 'space' ? (s.bgSpace || 'Space') : (s.bgRoom || 'Room'); document.body.classList.toggle('bg-space', bgMode === 'space'); }
+  $('bgBtn').addEventListener('click', function () { bgMode = bgMode === 'space' ? 'room' : 'space'; try { localStorage.setItem('consola.bg', bgMode); } catch (e) {} setBgUI(); blip(520); });
   if (TEST) { window.__arTest = function () { camOn = true; bg.classList.add('cam-on'); $('placeBtn').hidden = false; enterPlace(); }; }
 
   // ---------- touch controls (on-screen pad) ----------

@@ -24,7 +24,8 @@ import * as THREE from './vendor/three.module.js';
   var animPets = !reduced;
 
   var scene, camera, renderer, clock, petDog, petCat, raycaster, pointer = new THREE.Vector2();
-  var roomGroup, keyLight, inited = false;
+  var roomGroup, spaceGroup, keyLight, inited = false;
+  var fogRoom = null, fogSpace = null;
 
   function cfg() {
     if (TIER === 'low') return { dpr: Math.min(1.5, window.devicePixelRatio || 1), shadows: !isPS, shadowSize: 1024, aa: false };
@@ -51,9 +52,10 @@ import * as THREE from './vendor/three.module.js';
 
     buildLights(c);
     buildRoom();
+    buildSpace();
     buildShadowCatcher();
     petDog = makePet('dog'); petDog.position.set(-2.3, 0, 0.6); petDog.rotation.y = 0.55; scene.add(petDog);
-    petCat = makePet('cat'); petCat.position.set(2.3, 0, 0.6); petCat.rotation.y = -0.55; scene.add(petCat);
+    petCat = makeRabbit(); petCat.position.set(2.3, 0, 0.6); petCat.rotation.y = -0.4; scene.add(petCat);
     loadDogModel(); // upgrade the dog to a rigged glTF model (fallback: procedural)
 
     window.addEventListener('resize', onResize);
@@ -82,19 +84,116 @@ import * as THREE from './vendor/three.module.js';
     var glow = new THREE.PointLight(0x7c5cff, 0.5, 14); glow.position.set(0, 2.2, 1.5); scene.add(glow);
   }
 
+  // ---- cozy, realistic gaming room ----
   function buildRoom() {
     roomGroup = new THREE.Group();
-    var floor = new THREE.Mesh(new THREE.PlaneGeometry(50, 50), new THREE.MeshStandardMaterial({ color: 0x141829, roughness: 0.5, metalness: 0.12 }));
+    var low = TIER === 'low';
+    fogRoom = new THREE.Fog(0x20203a, 13, 36);
+    var mat = function (o) { return new THREE.MeshStandardMaterial(o); };
+    // floor with a soft gloss (wooden/carpet)
+    var floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), mat({ color: 0x3a2f28, roughness: 0.42, metalness: 0.08 }));
     floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; roomGroup.add(floor);
-    var wall = new THREE.Mesh(new THREE.PlaneGeometry(50, 20), new THREE.MeshStandardMaterial({ color: 0x1a1f36, roughness: 0.92 }));
-    wall.position.set(0, 9, -7); wall.receiveShadow = true; roomGroup.add(wall);
-    // soft nebula accents on the back wall (emissive spots)
-    [[-5, 5, 0x5b3bbf], [6, 7, 0x2b6cff]].forEach(function (a) {
-      var s = new THREE.Mesh(new THREE.CircleGeometry(3.2, 24), new THREE.MeshBasicMaterial({ color: a[2], transparent: true, opacity: 0.1 }));
-      s.position.set(a[0], a[1], -6.9); roomGroup.add(s);
+    // rug under the TV
+    var rug = new THREE.Mesh(new THREE.CircleGeometry(3.4, 44), mat({ color: 0x3b2d66, roughness: 0.96 }));
+    rug.rotation.x = -Math.PI / 2; rug.position.set(0, 0.01, 1.2); rug.receiveShadow = true; roomGroup.add(rug);
+    var rugR = new THREE.Mesh(new THREE.RingGeometry(2.9, 3.3, 44), mat({ color: 0x6b54c0, roughness: 0.96 }));
+    rugR.rotation.x = -Math.PI / 2; rugR.position.set(0, 0.012, 1.2); roomGroup.add(rugR);
+    // walls (corner)
+    var wallMat = mat({ color: 0x2b2a40, roughness: 0.95 });
+    var back = new THREE.Mesh(new THREE.PlaneGeometry(60, 26), wallMat); back.position.set(0, 13, -7); back.receiveShadow = true; roomGroup.add(back);
+    if (!low) {
+      var lw = new THREE.Mesh(new THREE.PlaneGeometry(40, 26), wallMat); lw.position.set(-11, 13, 10); lw.rotation.y = Math.PI / 2; roomGroup.add(lw);
+      var rw = lw.clone(); rw.position.x = 11; rw.rotation.y = -Math.PI / 2; roomGroup.add(rw);
+    }
+    // window with soft daylight + frame + light
+    var win = new THREE.Mesh(new THREE.PlaneGeometry(4, 3), mat({ color: 0xcfe9ff, emissive: 0xbfe3ff, emissiveIntensity: 0.85, roughness: 0.4 }));
+    win.position.set(-4.6, 5.6, -6.9); roomGroup.add(win);
+    var fm = mat({ color: 0xeef0f4, roughness: 0.6 });
+    [[0, 1.55, 4.4, 0.18], [0, -1.55, 4.4, 0.18]].forEach(function (b) { var m2 = new THREE.Mesh(new THREE.BoxGeometry(b[2], b[3], 0.16), fm); m2.position.set(-4.6 + b[0], 5.6 + b[1], -6.84); roomGroup.add(m2); });
+    [[-2.2, 0, 0.18, 3.3], [2.2, 0, 0.18, 3.3], [0, 0, 0.12, 3.3]].forEach(function (b) { var m2 = new THREE.Mesh(new THREE.BoxGeometry(b[2], b[3], 0.16), fm); m2.position.set(-4.6 + b[0], 5.6, -6.84); roomGroup.add(m2); });
+    var winLight = new THREE.PointLight(0xbfe3ff, 0.8, 22); winLight.position.set(-4.6, 5.6, -5); roomGroup.add(winLight);
+    // framed posters
+    if (!low) [[3.6, 6, 0x7c5cff], [5.3, 5, 0xff6b8a]].forEach(function (a) {
+      var frp = new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2.1), mat({ color: 0x111018, roughness: 0.6 })); frp.position.set(a[0], a[1], -6.88); roomGroup.add(frp);
+      var art = new THREE.Mesh(new THREE.PlaneGeometry(1.4, 1.9), mat({ color: a[2], emissive: a[2], emissiveIntensity: 0.18, roughness: 0.7 })); art.position.set(a[0], a[1], -6.86); roomGroup.add(art);
     });
+    // houseplant
+    var pot = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.3, 0.55, 16), mat({ color: 0xb5542f, roughness: 0.85 })); pot.position.set(4.8, 0.27, -5.4); pot.castShadow = true; roomGroup.add(pot);
+    var leaf = mat({ color: 0x3f9a4e, roughness: 0.8 });
+    for (var i = 0; i < (low ? 4 : 8); i++) { var lf = new THREE.Mesh(new THREE.ConeGeometry(0.2, 1.0, 6), leaf); lf.position.set(4.8 + Math.cos(i) * 0.2, 1.0 + (i % 3) * 0.18, -5.4 + Math.sin(i) * 0.2); lf.rotation.z = (i - 4) * 0.2; lf.rotation.x = Math.sin(i) * 0.3; lf.castShadow = true; roomGroup.add(lf); }
+    // beanbag
+    if (!low) { var bean = new THREE.Mesh(new THREE.SphereGeometry(0.95, 18, 14), mat({ color: 0x2f6b8c, roughness: 0.92 })); bean.scale.set(1, 0.62, 1); bean.position.set(-5, 0.52, 2.6); bean.castShadow = true; bean.receiveShadow = true; roomGroup.add(bean); }
+    // warm floor lamp
+    var pole = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 2.5, 8), mat({ color: 0x222228, roughness: 0.5, metalness: 0.4 })); pole.position.set(5.4, 1.25, -3); pole.castShadow = true; roomGroup.add(pole);
+    var shade = new THREE.Mesh(new THREE.ConeGeometry(0.52, 0.62, 18, 1, true), mat({ color: 0xffd9a0, emissive: 0xffb060, emissiveIntensity: 0.95, roughness: 0.6, side: THREE.DoubleSide })); shade.position.set(5.4, 2.6, -3); roomGroup.add(shade);
+    var lamp = new THREE.PointLight(0xffb060, 0.75, 13); lamp.position.set(5.4, 2.5, -3); roomGroup.add(lamp);
     scene.add(roomGroup);
   }
+
+  // ---- space background (selectable alternative) ----
+  function buildSpace() {
+    spaceGroup = new THREE.Group();
+    fogSpace = new THREE.Fog(0x05060d, 16, 55);
+    var n = TIER === 'low' ? 500 : 1600;
+    var geo = new THREE.BufferGeometry(), pos = new Float32Array(n * 3);
+    for (var i = 0; i < n; i++) { pos[i * 3] = (Math.random() - 0.5) * 90; pos[i * 3 + 1] = Math.random() * 45; pos[i * 3 + 2] = (Math.random() - 0.5) * 90 - 12; }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    var stars = new THREE.Points(geo, new THREE.PointsMaterial({ color: 0xffffff, size: 0.13, sizeAttenuation: true }));
+    spaceGroup.add(stars); spaceGroup.userData.stars = stars;
+    [[-9, 11, -24, 0x6b3bcf], [10, 8, -26, 0x2b6cff]].forEach(function (a) {
+      var s = new THREE.Mesh(new THREE.CircleGeometry(9, 28), new THREE.MeshBasicMaterial({ color: a[3], transparent: true, opacity: 0.13 }));
+      s.position.set(a[0], a[1], a[2]); spaceGroup.add(s);
+    });
+    var floor = new THREE.Mesh(new THREE.PlaneGeometry(60, 60), new THREE.MeshStandardMaterial({ color: 0x0a0c1a, roughness: 0.22, metalness: 0.5 }));
+    floor.rotation.x = -Math.PI / 2; floor.receiveShadow = true; spaceGroup.add(floor);
+    scene.add(spaceGroup); spaceGroup.visible = false;
+  }
+
+  // ---- procedural rabbit (realistic sitting bunny) ----
+  function makeRabbit() {
+    var g = new THREE.Group();
+    var coat = new THREE.MeshStandardMaterial({ color: 0xe7e1d6, roughness: 0.96, metalness: 0 }); // soft white-grey fur
+    var belly = new THREE.MeshStandardMaterial({ color: 0xf5f1ea, roughness: 0.96 });
+    var pink = new THREE.MeshStandardMaterial({ color: 0xf2bcc6, roughness: 0.85 });
+    var dark = new THREE.MeshStandardMaterial({ color: 0x15151f, roughness: 0.5 });
+    var noseMat = new THREE.MeshStandardMaterial({ color: 0xe0869c, roughness: 0.6 });
+
+    // haunches / body — big rounded rear rising to an upright chest (sitting pose)
+    var haunch = new THREE.Mesh(new THREE.SphereGeometry(0.44, 24, 18), coat); haunch.scale.set(1, 1.02, 1.0); haunch.position.set(0, 0.44, -0.04);
+    var chest = new THREE.Mesh(new THREE.SphereGeometry(0.3, 22, 16), coat); chest.scale.set(0.95, 1.05, 0.95); chest.position.set(0, 0.6, 0.2);
+    var bellyPatch = new THREE.Mesh(new THREE.SphereGeometry(0.22, 18, 14), belly); bellyPatch.scale.set(0.9, 1.0, 0.7); bellyPatch.position.set(0, 0.42, 0.32);
+
+    // head sub-group (looks around; ears/face move with it)
+    var head = new THREE.Group(); head.position.set(0, 0.86, 0.26);
+    var skull = new THREE.Mesh(new THREE.SphereGeometry(0.24, 22, 16), coat); skull.scale.set(1.02, 0.98, 1.0); head.add(skull);
+    var muzzle = new THREE.Mesh(new THREE.SphereGeometry(0.14, 18, 14), coat); muzzle.scale.set(0.9, 0.82, 1.1); muzzle.position.set(0, -0.06, 0.18); head.add(muzzle);
+    var nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), noseMat); nose.position.set(0, -0.04, 0.3); head.add(nose);
+    var eL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), dark); eL.scale.set(1, 1.1, 1); eL.position.set(-0.13, 0.03, 0.16);
+    var eR = eL.clone(); eR.position.x = 0.13; head.add(eL, eR);
+    // tiny eye glints
+    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x333333 })); gl.position.set(e.position.x + 0.02, e.position.y + 0.02, 0.2); head.add(gl); });
+    // whiskers
+    var wMat = new THREE.MeshStandardMaterial({ color: 0xd8d2c8, roughness: 0.4 });
+    [-1, 1].forEach(function (s) { for (var i = 0; i < 3; i++) { var w = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.32, 4), wMat); w.position.set(s * 0.09, -0.05 + i * 0.03, 0.26); w.rotation.z = Math.PI / 2; w.rotation.y = s * (0.3 + i * 0.12); head.add(w); } });
+    // long upright ears with pink inner, parented to the head
+    function ear() { var grp = new THREE.Group(); var o = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.5, 8, 12), coat); o.scale.set(0.7, 1, 1); var inr = new THREE.Mesh(new THREE.CapsuleGeometry(0.04, 0.4, 6, 10), pink); inr.scale.set(0.7, 1, 1); inr.position.z = 0.03; grp.add(o, inr); return grp; }
+    var earL = ear(); earL.position.set(-0.12, 0.3, 0.0); earL.rotation.z = 0.16; earL.rotation.x = -0.1;
+    var earR = ear(); earR.position.set(0.12, 0.3, 0.0); earR.rotation.z = -0.16; earR.rotation.x = -0.1;
+    head.add(earL, earR);
+
+    // front paws tucked, big hind feet along the floor
+    var pL = new THREE.Mesh(new THREE.SphereGeometry(0.075, 12, 10), coat); pL.scale.set(1, 0.7, 1.6); pL.position.set(-0.12, 0.1, 0.34); var pR = pL.clone(); pR.position.x = 0.12;
+    var fL = new THREE.Mesh(new THREE.CapsuleGeometry(0.1, 0.22, 6, 10), coat); fL.rotation.x = Math.PI / 2; fL.position.set(-0.2, 0.1, 0.12); var fR = fL.clone(); fR.position.x = 0.2;
+    // fluffy cottontail
+    var tail = new THREE.Mesh(new THREE.SphereGeometry(0.14, 14, 12), belly); tail.position.set(0, 0.44, -0.44);
+
+    g.add(haunch, chest, bellyPatch, head, pL, pR, fL, fR, tail);
+    g.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; } });
+    g.userData = { kind: 'rabbit', body: haunch, head: head, tail: tail, eL: eL, eR: eR, earL: earL, earR: earR, nose: nose, t: Math.random() * 6, hop: 0 };
+    g.scale.setScalar(0.8);
+    return g;
+  }
+
 
   // Lazy-load a rigged glTF animal for the dog (CC0 model "Fox" by PixelMannen,
   // animation CC-BY tomkranis). Only when the 3D layer is active. Robust
@@ -174,7 +273,13 @@ import * as THREE from './vendor/three.module.js';
     cv.style.opacity = '1';
     var dt = clock.getDelta();
     var ar = $('bg') && $('bg').classList.contains('cam-on');
-    if (roomGroup) roomGroup.visible = !ar; // AR: show the real room, keep pets + shadow
+    var mode = (window.__CONSOLA_BG && window.__CONSOLA_BG()) || 'room';
+    if (ar) { roomGroup.visible = false; spaceGroup.visible = false; scene.fog = null; }
+    else {
+      var sp = mode === 'space';
+      roomGroup.visible = !sp; spaceGroup.visible = sp; scene.fog = sp ? fogSpace : fogRoom;
+      if (sp && spaceGroup.userData.stars && animPets) spaceGroup.userData.stars.rotation.y += dt * 0.012;
+    }
     // pets follow the TV's placed position (x) and size (s)
     var a = (window.__CONSOLA_TV && window.__CONSOLA_TV()) || { x: 0, y: 0, s: 0.6 };
     var wx = (a.x || 0) * 0.006, sp = 2.25 * (0.82 + (a.s || 0.6) * 0.42), ps = 0.68 + (a.s || 0.6) * 0.12;
@@ -189,9 +294,16 @@ import * as THREE from './vendor/three.module.js';
   function idle(p, dt) {
     var u = p.userData; u.t += dt;
     u.body.scale.y = 0.92 * (1 + Math.sin(u.t * 1.8) * 0.045);
-    u.tail.rotation.z = Math.sin(u.t * (u.kind === 'cat' ? 4 : 5)) * 0.55;
     var blink = (Math.sin(u.t * 0.7) > 0.98) ? 0.1 : 1; u.eL.scale.y = u.eR.scale.y = blink;
     u.head.rotation.z = Math.sin(u.t * 0.9) * 0.05;
+    if (u.kind === 'rabbit') {
+      var flick = (Math.sin(u.t * 5.3) > 0.82) ? 0.18 : 0;      // occasional ear flick
+      u.earL.rotation.z = 0.16 + flick; u.earR.rotation.z = -0.16 - flick * 0.6;
+      u.nose.scale.setScalar(1 + (Math.sin(u.t * 9) > 0.55 ? 0.35 : 0)); // nose twitch
+      u.head.rotation.y = Math.sin(u.t * 0.5) * 0.2;             // slow look-around
+    } else if (u.tail) {
+      u.tail.rotation.z = Math.sin(u.t * (u.kind === 'cat' ? 4 : 5)) * 0.55;
+    }
     if (u.hop > 0) { u.hop -= dt * 3; p.position.y = Math.max(0, Math.sin(u.hop * Math.PI) * 0.42); } else p.position.y = 0;
   }
   function hopUpdate(p, dt) { var u = p.userData; if (u.hop > 0) { u.hop -= dt * 3; p.position.y = Math.max(0, Math.sin(u.hop * Math.PI) * 0.3); } else p.position.y = 0; }
@@ -209,6 +321,7 @@ import * as THREE from './vendor/three.module.js';
     try { AC = AC || new (window.AudioContext || window.webkitAudioContext)(); if (AC.state === 'suspended') AC.resume();
       var o = AC.createOscillator(), g = AC.createGain(); o.connect(g); g.connect(AC.destination); var t0 = AC.currentTime;
       if (kind === 'dog') { o.type = 'sawtooth'; o.frequency.setValueAtTime(210, t0); o.frequency.exponentialRampToValueAtTime(120, t0 + 0.14); g.gain.setValueAtTime(0.12, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.18); o.start(t0); o.stop(t0 + 0.2); }
+      else if (kind === 'rabbit') { o.type = 'sine'; o.frequency.setValueAtTime(900, t0); o.frequency.linearRampToValueAtTime(1180, t0 + 0.08); g.gain.setValueAtTime(0.08, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.14); o.start(t0); o.stop(t0 + 0.16); } // soft squeak
       else { o.type = 'triangle'; o.frequency.setValueAtTime(620, t0); o.frequency.linearRampToValueAtTime(880, t0 + 0.12); o.frequency.linearRampToValueAtTime(520, t0 + 0.28); g.gain.setValueAtTime(0.1, t0); g.gain.exponentialRampToValueAtTime(0.001, t0 + 0.32); o.start(t0); o.stop(t0 + 0.34); }
     } catch (e) {}
   }

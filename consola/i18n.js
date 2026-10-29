@@ -166,7 +166,8 @@
     voice: 'Speak', voiceNA: 'Voice not available here', voiceHelp: "Didn't catch that — try: 'play Snake'", voiceListen: 'Listening…', move: 'Move',
     voiceOut: 'Spoken voice', chooseVoice: 'Voice', spokenFeedback: 'Speak feedback aloud', testVoice: 'Test', close: 'Close', defaultVoice: 'Automatic (best)',
     appsFilter: 'Apps',
-    placeHint: 'Tap the floor to place the TV', moveTv: 'Move TV', placed: 'TV placed ✓'
+    placeHint: 'Tap the floor to place the TV', moveTv: 'Move TV', placed: 'TV placed ✓',
+    bgRoom: 'Room', bgSpace: 'Space'
   };
 
   var STR = {
@@ -194,7 +195,8 @@
       voice: 'Hablar', voiceNA: 'Voz no disponible aquí', voiceHelp: "No te entendí — prueba: 'jugar Snake'", voiceListen: 'Escuchando…', move: 'Mover',
       voiceOut: 'Voz hablada', chooseVoice: 'Voz', spokenFeedback: 'Leer en voz alta', testVoice: 'Probar', close: 'Cerrar', defaultVoice: 'Automática (la mejor)',
       appsFilter: 'Apps',
-      placeHint: 'Toca el suelo para poner la tele', moveTv: 'Mover tele', placed: 'Tele colocada ✓'
+      placeHint: 'Toca el suelo para poner la tele', moveTv: 'Mover tele', placed: 'Tele colocada ✓',
+      bgRoom: 'Sala', bgSpace: 'Espacio'
     },
     pt: {
       brand: 'Consola Nebula',

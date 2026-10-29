@@ -10,7 +10,10 @@ Nebula Console — créditos / credits
   Source: Khronos glTF Sample Models (https://github.com/KhronosGroup/glTF-Sample-Assets, Models/Fox).
   Used here as the dog mascot, standing beside the console; only the idle ("Survey") clip is played.
 
-- Cat mascot: original procedural low-poly model generated in three.js by KMM (no external asset).
+- Rabbit mascot: original procedural model generated in three.js by KMM (no external asset).
+  (No license-clear free CC0/CC-BY rigged rabbit GLB was available; all found were paid.)
+
+Room + space backgrounds: original procedural three.js scenes by KMM.
 
 Free games embedded in the library (each loads from its own site; credited in-app):
 - Clumsy Bird — Ellison Leão (MIT)

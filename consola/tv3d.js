@@ -25,7 +25,7 @@ import * as THREE from './vendor/three.module.js';
 
   var scene, camera, renderer, clock, petDog, petCat, raycaster, pointer = new THREE.Vector2();
   var roomGroup, spaceGroup, keyLight, inited = false;
-  var fogRoom = null, fogSpace = null;
+  var fogRoom = null, fogSpace = null, furTex = null;
 
   function cfg() {
     if (TIER === 'low') return { dpr: Math.min(1.5, window.devicePixelRatio || 1), shadows: !isPS, shadowSize: 1024, aa: false };
@@ -39,7 +39,7 @@ import * as THREE from './vendor/three.module.js';
     renderer.setPixelRatio(c.dpr);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
-    renderer.toneMappingExposure = 1.05;
+    renderer.toneMappingExposure = 1.1;
     if (c.shadows) { renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap; }
     var cv = renderer.domElement;
     cv.id = 'gl'; cv.style.cssText = 'position:fixed;inset:0;z-index:4;pointer-events:none;';
@@ -49,6 +49,7 @@ import * as THREE from './vendor/three.module.js';
     camera = new THREE.PerspectiveCamera(34, window.innerWidth / window.innerHeight, 0.1, 100);
     clock = new THREE.Clock();
     raycaster = new THREE.Raycaster();
+    if (TIER === 'high') furTex = makeFurTexture();   // fur bump for the pets
 
     loadEnv();   // PBR environment reflections/ambient (lazy, with the 3D layer)
     buildLights(c);
@@ -77,13 +78,34 @@ import * as THREE from './vendor/three.module.js';
     }).catch(function () {});
   }
 
-  // Fur-like material: physical with soft sheen (fur rim) on high tier; standard on low.
+  // A cheap canvas-generated "fur" bump texture: many tiny strokes → furry micro-relief
+  // that catches light, so the coat reads as fur instead of smooth plastic. One shared
+  // texture, high tier only.
+  function makeFurTexture() {
+    try {
+      var c = document.createElement('canvas'); c.width = c.height = 256; var x = c.getContext('2d');
+      x.fillStyle = '#808080'; x.fillRect(0, 0, 256, 256);
+      for (var i = 0; i < 11000; i++) {
+        var gx = Math.random() * 256, gy = Math.random() * 256, sh = 90 + ((Math.random() * 130) | 0);
+        x.strokeStyle = 'rgba(' + sh + ',' + sh + ',' + sh + ',' + (0.25 + Math.random() * 0.45) + ')';
+        x.lineWidth = 0.6 + Math.random() * 0.5; x.beginPath(); x.moveTo(gx, gy);
+        x.lineTo(gx + (Math.random() - 0.5) * 3.5, gy - (2 + Math.random() * 4)); x.stroke();
+      }
+      var t = new THREE.CanvasTexture(c); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.repeat.set(5, 5); return t;
+    } catch (e) { return null; }
+  }
+
+  // Fur-like material: physical with soft sheen (fur rim) + fur bump on high tier; standard on low.
   function furMat(color, opt) {
     opt = opt || {};
-    if (TIER === 'high') return new THREE.MeshPhysicalMaterial(Object.assign({
-      color: color, roughness: 0.95, metalness: 0, sheen: 0.6,
-      sheenColor: new THREE.Color(0xfff2e6), sheenRoughness: 0.85, envMapIntensity: 0.55
-    }, opt));
+    if (TIER === 'high') {
+      var m = new THREE.MeshPhysicalMaterial(Object.assign({
+        color: color, roughness: 0.98, metalness: 0, sheen: 0.7,
+        sheenColor: new THREE.Color(0xfff2e6), sheenRoughness: 0.9, envMapIntensity: 0.65
+      }, opt));
+      if (furTex) { m.bumpMap = furTex; m.bumpScale = 0.022; }
+      return m;
+    }
     return new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.95, metalness: 0, envMapIntensity: 0.5 }, opt));
   }
 
@@ -185,7 +207,9 @@ import * as THREE from './vendor/three.module.js';
     var dark = (TIER === 'high')
       ? new THREE.MeshPhysicalMaterial({ color: 0x0c0a0f, roughness: 0.07, clearcoat: 1, clearcoatRoughness: 0.08, envMapIntensity: 1.15 })
       : new THREE.MeshStandardMaterial({ color: 0x0c0a0f, roughness: 0.18, metalness: 0.1, envMapIntensity: 0.9 });
-    var noseMat = new THREE.MeshStandardMaterial({ color: v.nose, roughness: 0.4, metalness: 0.05, envMapIntensity: 0.6 });
+    var noseMat = (TIER === 'high')
+      ? new THREE.MeshPhysicalMaterial({ color: v.nose, roughness: 0.3, clearcoat: 0.7, clearcoatRoughness: 0.25, envMapIntensity: 0.8 }) // damp nose
+      : new THREE.MeshStandardMaterial({ color: v.nose, roughness: 0.4, metalness: 0.05, envMapIntensity: 0.6 });
 
     // sitting silhouette: rounded haunches rising to an upright chest
     var haunch = new THREE.Mesh(new THREE.SphereGeometry(0.44, 24, 18), mid); haunch.scale.set(1, 1.02, 1.0); haunch.position.set(0, 0.44, -0.04);
@@ -202,7 +226,7 @@ import * as THREE from './vendor/three.module.js';
     var nose = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), noseMat); nose.position.set(0, -0.04, 0.3); head.add(nose);
     var eL = new THREE.Mesh(new THREE.SphereGeometry(0.05, 12, 10), dark); eL.scale.set(1, 1.1, 1); eL.position.set(-0.13, 0.03, 0.16);
     var eR = eL.clone(); eR.position.x = 0.13; head.add(eL, eR);
-    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x555555 })); gl.position.set(e.position.x + 0.025, e.position.y + 0.02, 0.2); head.add(gl); });
+    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.014, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x9a9a9a })); gl.position.set(e.position.x + 0.025, e.position.y + 0.02, 0.2); head.add(gl); });
     var wMat = new THREE.MeshStandardMaterial({ color: 0xd8d2c8, roughness: 0.4 });
     [-1, 1].forEach(function (s) { for (var i = 0; i < 3; i++) { var w = new THREE.Mesh(new THREE.CylinderGeometry(0.004, 0.004, 0.32, 4), wMat); w.position.set(s * 0.09, -0.05 + i * 0.03, 0.26); w.rotation.z = Math.PI / 2; w.rotation.y = s * (0.3 + i * 0.12); head.add(w); } });
     // ears: outer coat + darker tip + pink inner
@@ -249,7 +273,7 @@ import * as THREE from './vendor/three.module.js';
     var nose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 12, 10), noseMat); nose.position.set(0, -0.05, 0.47); head.add(nose);
     var tongue = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.02, 0.12), tongueMat); tongue.position.set(0, -0.14, 0.4); head.add(tongue);
     var eL = new THREE.Mesh(new THREE.SphereGeometry(0.045, 12, 10), eyeMat); eL.position.set(-0.11, 0.04, 0.17); var eR = eL.clone(); eR.position.x = 0.11; head.add(eL, eR);
-    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.013, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x555555 })); gl.position.set(e.position.x + 0.02, e.position.y + 0.02, 0.21); head.add(gl); });
+    [eL, eR].forEach(function (e) { var gl = new THREE.Mesh(new THREE.SphereGeometry(0.013, 6, 6), new THREE.MeshStandardMaterial({ color: 0xffffff, emissive: 0x9a9a9a })); gl.position.set(e.position.x + 0.02, e.position.y + 0.02, 0.21); head.add(gl); });
     function ear() { var e = new THREE.Mesh(new THREE.ConeGeometry(0.11, 0.32, 4), blk); e.scale.set(1, 1, 0.5); return e; }
     var earL = ear(); earL.position.set(-0.13, 0.24, -0.02); earL.rotation.z = 0.2; earL.rotation.x = -0.08;
     var earR = ear(); earR.position.set(0.13, 0.24, -0.02); earR.rotation.z = -0.2; earR.rotation.x = -0.08; head.add(earL, earR);

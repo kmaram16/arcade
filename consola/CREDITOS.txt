@@ -1,0 +1,23 @@
+Nebula Console — créditos / credits
+====================================
+
+3D engine
+- three.js r162 (MIT License) — https://threejs.org  (vendored: vendor/three.module.js, GLTFLoader.js, BufferGeometryUtils.js)
+
+3D animal models (vendor/*.glb)
+- Dog mascot: "Fox" low-poly model — model © PixelMannen, released CC0 (public domain);
+  rigging & animations © tomkranis, licensed CC-BY 4.0 (https://creativecommons.org/licenses/by/4.0/).
+  Source: Khronos glTF Sample Models (https://github.com/KhronosGroup/glTF-Sample-Assets, Models/Fox).
+  Used here as the dog mascot, standing beside the console; only the idle ("Survey") clip is played.
+
+- Cat mascot: original procedural low-poly model generated in three.js by KMM (no external asset).
+
+Free games embedded in the library (each loads from its own site; credited in-app):
+- Clumsy Bird — Ellison Leão (MIT)
+- Astray 3D — wwwtyro (MIT)
+- T-Rex Runner — wayou (MIT)
+
+Everything else (UI, TV/console, carousel, voice, i18n, etc.) is original work by KMM.
+
+A verified-CC0 animated cat glTF could be dropped into vendor/ and wired through the same
+GLTFLoader path (tv3d.js: loadDogModel) to make the cat a rigged model too.

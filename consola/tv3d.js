@@ -54,6 +54,7 @@ import * as THREE from './vendor/three.module.js';
     buildShadowCatcher();
     petDog = makePet('dog'); petDog.position.set(-2.3, 0, 0.6); petDog.rotation.y = 0.55; scene.add(petDog);
     petCat = makePet('cat'); petCat.position.set(2.3, 0, 0.6); petCat.rotation.y = -0.55; scene.add(petCat);
+    loadDogModel(); // upgrade the dog to a rigged glTF model (fallback: procedural)
 
     window.addEventListener('resize', onResize);
     document.body.addEventListener('pointerdown', onPointer, true);
@@ -93,6 +94,32 @@ import * as THREE from './vendor/three.module.js';
       s.position.set(a[0], a[1], -6.9); roomGroup.add(s);
     });
     scene.add(roomGroup);
+  }
+
+  // Lazy-load a rigged glTF animal for the dog (CC0 model "Fox" by PixelMannen,
+  // animation CC-BY tomkranis). Only when the 3D layer is active. Robust
+  // fallback: on any error the procedural dog stays.
+  function loadDogModel() {
+    import('./vendor/GLTFLoader.js').then(function (m) {
+      var loader = new m.GLTFLoader();
+      loader.load('vendor/Fox.glb', function (gltf) {
+        try {
+          var model = gltf.scene;
+          model.scale.setScalar(0.026);
+          model.rotation.y = Math.PI * 0.16;
+          model.traverse(function (o) { if (o.isMesh) { o.castShadow = true; o.receiveShadow = true; if (o.material) { o.material.roughness = 0.78; o.material.metalness = 0; } } });
+          while (petDog.children.length) petDog.remove(petDog.children[0]);
+          petDog.add(model);
+          var mixer = new THREE.AnimationMixer(model);
+          var clips = gltf.animations || [];
+          var idleClip = THREE.AnimationClip.findByName(clips, 'Survey') || clips[0];
+          if (idleClip) mixer.clipAction(idleClip).play();
+          var runClip = THREE.AnimationClip.findByName(clips, 'Run') || THREE.AnimationClip.findByName(clips, 'Walk');
+          petDog.userData = { glb: true, mixer: mixer, hop: 0, idleClip: idleClip, runClip: runClip, clips: clips };
+          mixer.update(0);
+        } catch (e) { /* keep procedural dog */ }
+      }, undefined, function () { /* load failed → keep procedural dog */ });
+    }).catch(function () { /* loader import failed → keep procedural dog */ });
   }
 
   function buildShadowCatcher() {
@@ -153,7 +180,9 @@ import * as THREE from './vendor/three.module.js';
     var wx = (a.x || 0) * 0.006, sp = 2.25 * (0.82 + (a.s || 0.6) * 0.42), ps = 0.68 + (a.s || 0.6) * 0.12;
     petDog.position.x += (wx - sp - petDog.position.x) * 0.15; petDog.scale.setScalar(ps);
     petCat.position.x += (wx + sp - petCat.position.x) * 0.15; petCat.scale.setScalar(ps);
-    if (animPets) { idle(petDog, dt); idle(petCat, dt); }
+    if (petDog.userData.mixer) { if (animPets) petDog.userData.mixer.update(dt); hopUpdate(petDog, dt); }
+    else if (animPets) idle(petDog, dt);
+    if (animPets) idle(petCat, dt);
     renderer.render(scene, camera);
   }
 
@@ -165,6 +194,7 @@ import * as THREE from './vendor/three.module.js';
     u.head.rotation.z = Math.sin(u.t * 0.9) * 0.05;
     if (u.hop > 0) { u.hop -= dt * 3; p.position.y = Math.max(0, Math.sin(u.hop * Math.PI) * 0.42); } else p.position.y = 0;
   }
+  function hopUpdate(p, dt) { var u = p.userData; if (u.hop > 0) { u.hop -= dt * 3; p.position.y = Math.max(0, Math.sin(u.hop * Math.PI) * 0.3); } else p.position.y = 0; }
 
   function onPointer(e) {
     if (!inited || document.body.classList.contains('in-game')) return;

@@ -740,7 +740,11 @@ window.CONSOLA_GAMES = [
     "category": "Terror",
     "kind": "game",
     "url": "../dontlookback/",
-    "external": false
+    "external": false,
+    "badge": {
+      "es": "🩸 Sangre opcional",
+      "en": "🩸 Optional blood"
+    }
   },
   {
     "id": "kmmworld",
@@ -766,6 +770,19 @@ window.CONSOLA_GAMES = [
     "category": "Plataformas",
     "kind": "game",
     "url": "../lashimco/",
+    "external": false
+  },
+  {
+    "id": "stats",
+    "name": "Mis Estadísticas",
+    "icon": "📊",
+    "accent": [
+      "#3987e5",
+      "#9085e9"
+    ],
+    "category": "Comunidad",
+    "kind": "app",
+    "url": "../stats/",
     "external": false
   }
 ];

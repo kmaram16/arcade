@@ -247,7 +247,9 @@
     var credit = g.free ? '<div class="cart-credit">' + s.freeBy + ' ' + esc(g.credit) +
       (g.license ? ' · ' + esc(g.license) : '') + '</div>' : '';
     var extTag = g.external ? '<span class="cart-ext">▶</span>' : '';
-    el.innerHTML = extTag +
+    var badgeTxt = g.badge ? (g.badge[lang] || g.badge.en || g.badge.es) : '';
+    var badgeTag = badgeTxt ? '<span class="cart-badge">' + esc(badgeTxt) + '</span>' : '';
+    el.innerHTML = extTag + badgeTag +
       '<div class="cart-ico">' + esc(g.icon || '🎮') + '</div>' +
       '<div class="cart-name">' + esc(g.name) + '</div>' +
       '<div class="cart-cat">' + esc(g.category || '') + '</div>' + credit;

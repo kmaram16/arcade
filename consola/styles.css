@@ -516,3 +516,71 @@ body.placing { cursor: crosshair; }
 .tv-glare { background:
   linear-gradient(130deg, rgba(255,255,255,.16) 0%, rgba(255,255,255,.04) 24%, transparent 46%),
   radial-gradient(120% 80% at 80% -10%, rgba(140,180,255,.14), transparent 55%); }
+
+/* ========================================================================
+   PREMIUM POLISH PASS — cohesive console-store design system
+   (glassmorphism, refined type/spacing, hero art, smooth easing, focus glow)
+   ======================================================================== */
+:root { --ease: cubic-bezier(.22,.61,.36,1); }
+body { letter-spacing: .1px; -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; }
+
+/* ---- Top bar: refined glass ---- */
+.topbar { backdrop-filter: blur(20px) saturate(1.3); -webkit-backdrop-filter: blur(20px) saturate(1.3);
+  background: linear-gradient(180deg, rgba(8,10,22,.84), rgba(8,10,22,.3));
+  border-bottom: 1px solid rgba(150,180,255,.09); }
+.brand b { background: linear-gradient(92deg, var(--accent), var(--accent2)); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+.pill { background: linear-gradient(180deg, rgba(28,34,60,.72), rgba(16,20,38,.62));
+  border: 1px solid rgba(150,180,255,.16); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 2px 8px rgba(0,0,0,.25);
+  transition: transform .18s var(--ease), background .22s var(--ease), box-shadow .22s var(--ease); }
+.pill:hover { background: linear-gradient(180deg, rgba(40,48,80,.82), rgba(22,28,52,.72));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.08), 0 6px 18px rgba(0,0,0,.35), 0 0 0 1px rgba(91,214,255,.3); }
+.pill.install { box-shadow: 0 4px 18px rgba(91,214,255,.4); }
+
+/* ---- Carousel: console-store hero with screenshot art + name plate ---- */
+.car-cover { transition: transform .36s var(--ease), opacity .36s var(--ease), filter .36s var(--ease); border-radius: 20px; }
+.car-cover.center { filter: saturate(1.08); }
+.car-cover:not(.center) { filter: brightness(.8) saturate(.88); }
+.car-art { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: 20px; z-index: 1;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06); }
+.car-cover.has-art .car-ico { opacity: 0; }
+.car-cover.has-art::after { background: linear-gradient(#2a3350, #121726); } /* reflection matches a neutral art */
+.car-label { position: absolute; left: 0; right: 0; bottom: 0; z-index: 3; padding: 30px 10px 9px;
+  background: linear-gradient(transparent, rgba(0,0,0,.85)); border-radius: 0 0 20px 20px; opacity: 0; transition: opacity .3s var(--ease); }
+.car-cover.center .car-label { opacity: 1; }
+.car-label-name { display: block; text-align: center; font-weight: 800; font-size: clamp(12px,2.3vw,16px);
+  color: #fff; text-shadow: 0 2px 10px #000; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.car-cover.center .car-ico { box-shadow: inset 0 0 20px rgba(0,0,0,.3), 0 0 0 3px var(--accent), 0 0 48px var(--accent), 0 20px 54px rgba(0,0,0,.6); }
+.car-ext, .car-fav { z-index: 5; }
+.car-caption { bottom: 26px; letter-spacing: .3px; }
+.car-caption small { opacity: .9; }
+
+/* ---- Hint bar: premium glass ---- */
+.hintbar { backdrop-filter: blur(16px) saturate(1.2); -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  background: linear-gradient(0deg, rgba(8,10,22,.92), rgba(8,10,22,.32) 72%, transparent);
+  border-top: 1px solid rgba(124,92,255,.22); }
+.glyph { box-shadow: inset 0 1px 0 rgba(255,255,255,.07); }
+
+/* ---- Library cards + chips ---- */
+.cart { transition: transform .22s var(--ease), box-shadow .26s var(--ease), border-color .26s var(--ease);
+  background: linear-gradient(180deg, rgba(20,26,48,.72), rgba(14,18,34,.72)); backdrop-filter: blur(6px); }
+.cart:hover, .cart:focus-visible { transform: translateY(-4px) scale(1.02);
+  box-shadow: 0 16px 42px rgba(0,0,0,.5), 0 0 0 2px rgba(91,214,255,.5), 0 0 30px rgba(91,214,255,.25); }
+.chip { transition: transform .18s var(--ease), background .2s var(--ease), color .2s var(--ease); }
+.chip:hover { transform: translateY(-1px); }
+.search { transition: box-shadow .2s var(--ease), border-color .2s var(--ease); }
+.search:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(91,214,255,.25); outline: none; }
+
+/* ---- Big readable focus glow for TV distance ---- */
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 0 5px rgba(91,214,255,.22); }
+
+/* ---- Boot splash: smoother premium power-on ---- */
+.boot { background: radial-gradient(90% 90% at 50% 38%, #10163c, #04050d 72%); }
+.boot-k { animation: bootpop 1.15s var(--ease) both; }
+.boot-bar i { animation: load 2s var(--ease) forwards; }
+
+/* ---- TV glass: a touch more premium (slim highlight) ---- */
+.tv-bezel { border-color: rgba(170,195,255,.22); }
+
+/* smoother general state changes */
+.app, .stage, .library { transition: opacity .3s var(--ease); }

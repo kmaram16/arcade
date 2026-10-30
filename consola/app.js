@@ -277,7 +277,7 @@
   $('search').addEventListener('input', function (e) { query = e.target.value.trim().toLowerCase(); renderGrids(); });
 
   // ---------- on-TV cover-flow carousel ----------
-  var carGames = [], carIndex = 0, carEls = [];
+  var carGames = [], carIndex = 0, carEls = [], carBuiltOnce = false;
   var favs = loadFavs();
   function loadFavs() { try { return JSON.parse(localStorage.getItem('consola.favs') || '[]') || []; } catch (e) { return []; } }
   function isFav(id) { return favs.indexOf(id) >= 0; }
@@ -297,8 +297,10 @@
   function buildCarousel() {
     var box = $('carousel'); box.innerHTML = ''; carEls = [];
     carGames = GAMES.filter(matches).concat(freeFiltered);
-    // keep the player on the same game across filter changes when possible
-    var want = (carGames[carIndex] && carGames[carIndex].id) || savedCarId();
+    // On first build restore the last-played game; afterwards keep the current one.
+    var want = carBuiltOnce ? (carGames[carIndex] && carGames[carIndex].id)
+                            : (savedCarId() || (carGames[carIndex] && carGames[carIndex].id));
+    carBuiltOnce = true;
     var found = -1;
     for (var i = 0; i < carGames.length; i++) if (carGames[i].id === want) { found = i; break; }
     carIndex = found >= 0 ? found : 0;
@@ -309,7 +311,11 @@
       el.style.setProperty('--c2', (g.accent && g.accent[1]) || '#b07bff');
       el.innerHTML = (g.external ? '<span class="car-ext">▶</span>' : '') +
         (isFav(g.id) ? '<span class="car-fav">★</span>' : '') +
-        '<div class="car-ico">' + esc(g.icon || '🎮') + '</div>';
+        '<div class="car-ico">' + esc(g.icon || '🎮') + '</div>' +
+        '<div class="car-label"><span class="car-label-name">' + esc(g.name) + '</span></div>';
+      // Mark same-origin arcade games as having possible hero art (lazy-loaded in
+      // layoutCarousel only for visible covers; falls back to gradient+icon).
+      if (!g.external && !g.free && g.url && g.url.indexOf('http') !== 0) el.dataset.shot = g.url + 'shot1.jpg';
       el.setAttribute('aria-label', g.name);
       el.addEventListener('click', function () {
         if (i === carIndex) carLaunch(); else { carIndex = i; layoutCarousel(); blip(560); }
@@ -326,8 +332,17 @@
       var off = i - carIndex, a = Math.abs(off);
       if (a > 3) { el.style.display = 'none'; return; }
       el.style.display = '';
-      var ry = off < 0 ? 38 : off > 0 ? -38 : 0;
-      var sc = off === 0 ? 1 : 0.8;
+      // lazy-load the hero-art screenshot for this now-visible cover (once)
+      if (el.dataset.shot && !el._artTried) {
+        el._artTried = true;
+        (function (cover, url) {
+          var img = new Image(); img.className = 'car-art'; img.alt = ''; img.decoding = 'async';
+          img.onload = function () { cover.insertBefore(img, cover.firstChild); cover.classList.add('has-art'); };
+          img.src = url;
+        })(el, el.dataset.shot);
+      }
+      var ry = off < 0 ? 36 : off > 0 ? -36 : 0;
+      var sc = off === 0 ? 1.12 : 0.78;
       el.style.transform = 'translate(-50%,-50%) translateX(' + (off * spacing) + 'px) translateZ(' + (-a * 70) + 'px) rotateY(' + ry + 'deg) scale(' + sc + ')';
       el.style.opacity = off === 0 ? '1' : String(Math.max(0.3, 1 - a * 0.33));
       el.style.zIndex = String(100 - a);

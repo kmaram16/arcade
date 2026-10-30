@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="theme-color" content="#0b1020" />
+<title>Mis Estadísticas — KMM Arcade</title>
+<meta name="description" content="Cuántas personas descargan y juegan los juegos de KMM Arcade — en vivo." />
+<link rel="canonical" href="https://kmaram16.github.io/arcade/stats/" />
+<style>
+  :root{
+    --bg1:#0b1020; --bg2:#141a33; --surface:#1a1f3a; --surface2:#222a4d;
+    --ink:#f3f5ff; --ink2:#aab2d6; --muted:#7c85ad; --ring:rgba(255,255,255,.08);
+    /* validated dark-mode categorical hues (fixed order) */
+    --c1:#3987e5; --c2:#d95926; --c3:#199e70; --c4:#c98500;
+    --c5:#d55181; --c6:#008300; --c7:#9085e9; --c8:#e66767;
+    --good:#0ca30c; --live:#e34948;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{
+    font-family:system-ui,-apple-system,"Segoe UI",sans-serif; color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #2a1d57 0%, transparent 60%),
+      radial-gradient(900px 500px at 0% 10%, #103a52 0%, transparent 55%),
+      linear-gradient(160deg,var(--bg1),var(--bg2));
+    min-height:100vh; -webkit-text-size-adjust:100%;
+    padding:18px 16px 60px; overflow-x:hidden;
+  }
+  .wrap{max-width:860px;margin:0 auto}
+  a{color:inherit}
+  .topbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px}
+  .back{font-size:13px;font-weight:700;color:var(--ink2);text-decoration:none;
+    background:var(--surface);border:1px solid var(--ring);border-radius:999px;padding:7px 13px}
+  .back:hover{color:var(--ink)}
+  .spacer{flex:1}
+  .btn{cursor:pointer;border:1px solid var(--ring);background:var(--surface);color:var(--ink);
+    border-radius:999px;padding:8px 14px;font-weight:800;font-size:13px}
+  .btn:active{transform:scale(.96)}
+  .lang{display:flex;gap:4px;background:var(--surface);border:1px solid var(--ring);border-radius:999px;padding:3px}
+  .lang button{border:0;background:transparent;color:var(--ink2);font-weight:800;font-size:12px;
+    border-radius:999px;padding:5px 11px;cursor:pointer}
+  .lang button.on{background:var(--c1);color:#fff}
+  h1{font-size:clamp(26px,7vw,40px);margin:12px 0 2px;line-height:1.05;font-weight:900}
+  .sub{color:var(--ink2);font-size:15px;margin:0 0 18px;font-weight:600}
+  .heroes{display:grid;grid-template-columns:1fr;gap:14px;margin-bottom:22px}
+  @media(min-width:620px){.heroes{grid-template-columns:repeat(3,1fr)}}
+  .hero{position:relative;overflow:hidden;border-radius:22px;padding:20px 18px;
+    border:1px solid var(--ring);background:linear-gradient(145deg,var(--surface),var(--surface2));
+    box-shadow:0 14px 40px #0007}
+  .hero .cap{font-size:13px;font-weight:800;letter-spacing:.3px;color:var(--ink2);text-transform:uppercase}
+  .hero .num{font-size:clamp(44px,13vw,64px);font-weight:900;line-height:1;margin:8px 0 2px;
+    font-variant-numeric:tabular-nums;letter-spacing:-1px}
+  .hero .foot{font-size:12.5px;color:var(--muted);font-weight:600}
+  .hero.dl{box-shadow:0 14px 40px #0007,inset 0 0 0 2px #3987e540}
+  .hero.pl{box-shadow:0 14px 40px #0007,inset 0 0 0 2px #199e7040}
+  .hero.now{box-shadow:0 14px 40px #0007,inset 0 0 0 2px #e3494840}
+  .hero .num.dl{color:#86b6ef}
+  .hero .num.pl{color:#5be0b0}
+  .hero .num.now{color:#ff8f8e}
+  .livedot{display:inline-block;width:9px;height:9px;border-radius:50%;background:var(--live);
+    margin-right:6px;box-shadow:0 0 0 0 #e3494880;animation:pulse 1.6s infinite}
+  @keyframes pulse{0%{box-shadow:0 0 0 0 #e3494899}70%{box-shadow:0 0 0 10px #e3494800}100%{box-shadow:0 0 0 0 #e3494800}}
+  .trophy{position:absolute;top:10px;right:12px;font-size:26px;filter:drop-shadow(0 2px 6px #0008)}
+  .card{border-radius:22px;border:1px solid var(--ring);background:var(--surface);
+    padding:18px;margin-bottom:18px;box-shadow:0 10px 30px #0005}
+  .card h2{font-size:18px;margin:0 0 4px;font-weight:900}
+  .card .hint{font-size:12.5px;color:var(--muted);margin:0 0 14px;font-weight:600}
+  .tiles{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;margin-bottom:16px}
+  .tile{background:var(--surface2);border:1px solid var(--ring);border-radius:16px;padding:12px}
+  .tile .ic{font-size:24px;line-height:1}
+  .tile .nm{font-size:12.5px;color:var(--ink2);font-weight:700;margin:6px 0 2px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .tile .v{font-size:26px;font-weight:900;font-variant-numeric:tabular-nums;line-height:1}
+  /* bar chart */
+  .bars{display:flex;flex-direction:column;gap:11px}
+  .bar{display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:10px}
+  @media(max-width:520px){.bar{grid-template-columns:92px 1fr auto}}
+  .bar .lbl{font-size:13px;font-weight:700;color:var(--ink2);display:flex;align-items:center;gap:6px;
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .bar .track{height:16px;background:#ffffff0d;border-radius:999px;overflow:hidden}
+  .bar .fill{height:100%;border-radius:999px;width:0;transition:width 1.1s cubic-bezier(.2,.8,.2,1)}
+  .bar .val{font-size:14px;font-weight:900;font-variant-numeric:tabular-nums;min-width:26px;text-align:right}
+  .note{font-size:12px;color:var(--muted);font-weight:600;line-height:1.5}
+  .share{display:block;text-align:center;text-decoration:none;font-weight:800;font-size:15px;
+    background:linear-gradient(135deg,var(--c7),var(--c1));color:#fff;border-radius:16px;padding:14px;
+    margin-bottom:14px;box-shadow:0 10px 26px #0006}
+  .share small{display:block;font-weight:600;opacity:.85;font-size:12px;margin-top:3px}
+  .updated{text-align:center;font-size:12.5px;color:var(--muted);font-weight:600;margin:6px 0 20px}
+  .ratenote{background:#c9850022;border:1px solid #c9850055;color:#f2c14e;border-radius:12px;
+    padding:10px 12px;font-size:12.5px;font-weight:700;margin-bottom:14px;display:none}
+  .empty{color:var(--muted);font-size:13px;font-weight:600}
+  canvas#confetti{position:fixed;inset:0;pointer-events:none;z-index:9999;display:none}
+  .foot-priv{text-align:center;font-size:11.5px;color:var(--muted);margin-top:24px;line-height:1.6}
+</style>
+</head>
+<body>
+<canvas id="confetti"></canvas>
+<div class="wrap">
+  <div class="topbar">
+    <a class="back" href="../">⬅ <span data-t="back">Volver al arcade</span></a>
+    <div class="spacer"></div>
+    <div class="lang" id="lang">
+      <button data-l="es">ES</button>
+      <button data-l="en">EN</button>
+    </div>
+    <button class="btn" id="refresh">🔄 <span data-t="refresh">Actualizar</span></button>
+  </div>
+
+  <h1 data-t="title">📊 Mis Estadísticas</h1>
+  <p class="sub" data-t="sub">Mira cuánta gente de todo el mundo descarga y juega tus juegos.</p>
+
+  <div class="heroes">
+    <div class="hero dl">
+      <span class="trophy" id="dlTrophy" style="display:none"></span>
+      <div class="cap" data-t="capDl">Descargas totales</div>
+      <div class="num dl" id="dlTotal">—</div>
+      <div class="foot" data-t="footDl">juegos para PC/Android</div>
+    </div>
+    <div class="hero pl">
+      <span class="trophy" id="plTrophy" style="display:none"></span>
+      <div class="cap" data-t="capPl">Veces jugado</div>
+      <div class="num pl" id="plTotal">—</div>
+      <div class="foot"><span data-t="footPl">juegos del navegador</span> · <span data-t="since">empezamos hoy</span></div>
+    </div>
+    <div class="hero now">
+      <div class="cap"><span class="livedot"></span><span data-t="capNow">Jugando ahora</span></div>
+      <div class="num now" id="nowTotal">—</div>
+      <div class="foot" id="nowFoot" data-t="footNow">pantallas abiertas en vivo</div>
+    </div>
+  </div>
+
+  <div class="ratenote" id="rateNote"></div>
+
+  <div class="card">
+    <h2 data-t="dlH">⬇️ Descargas por juego</h2>
+    <p class="hint" data-t="dlHint">Suma de todas las descargas desde GitHub.</p>
+    <div class="tiles" id="dlTiles"><div class="empty" data-t="loading">Cargando…</div></div>
+    <div class="bars" id="dlBars"></div>
+  </div>
+
+  <div class="card">
+    <h2 data-t="plH">🎮 Veces jugado por juego</h2>
+    <p class="hint" data-t="plHint">Contamos cada vez que se abre un juego del navegador. ¡Empezamos a contar hoy!</p>
+    <div class="tiles" id="plTiles"><div class="empty" data-t="plEmpty">Esperando las primeras partidas…</div></div>
+  </div>
+
+  <a class="share" id="shareLink" href="../">
+    <span data-t="share">📣 Comparte tus juegos para tener más jugadores</span>
+    <small>kmaram16.github.io/arcade</small>
+  </a>
+
+  <div class="updated" id="updated"></div>
+
+  <div class="foot-priv" data-t="priv">
+    🔒 Esto cuenta CUÁNTAS veces, nunca QUIÉN. Solo números, sin datos personales.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/mqtt@5.15.2/dist/mqtt.min.js"></script>
+<script>
+(function(){
+  "use strict";
+
+  // ---------- i18n ----------
+  var T = {
+    es:{ back:"Volver al arcade", refresh:"Actualizar", title:"📊 Mis Estadísticas",
+      sub:"Mira cuánta gente de todo el mundo descarga y juega tus juegos.",
+      capDl:"Descargas totales", footDl:"juegos para PC/Android",
+      capPl:"Veces jugado", footPl:"juegos del navegador", since:"empezamos hoy",
+      capNow:"Jugando ahora", footNow:"pantallas abiertas en vivo",
+      dlH:"⬇️ Descargas por juego", dlHint:"Suma de todas las descargas desde GitHub.",
+      plH:"🎮 Veces jugado por juego",
+      plHint:"Contamos cada vez que se abre un juego del navegador. ¡Empezamos a contar hoy!",
+      loading:"Cargando…", plEmpty:"Esperando las primeras partidas…",
+      share:"📣 Comparte tus juegos para tener más jugadores",
+      priv:"🔒 Esto cuenta CUÁNTAS veces, nunca QUIÉN. Solo números, sin datos personales.",
+      updated:"Última actualización:", offline:"sin conexión en vivo",
+      rate:"GitHub nos pidió esperar un poco (límite de la web). Mostramos los últimos números guardados. Pulsa 🔄 más tarde.",
+      cached:"(números guardados)" },
+    en:{ back:"Back to the arcade", refresh:"Refresh", title:"📊 My Stats",
+      sub:"See how many people around the world download and play your games.",
+      capDl:"Total downloads", footDl:"PC/Android games",
+      capPl:"Times played", footPl:"browser games", since:"started today",
+      capNow:"Playing now", footNow:"screens open live",
+      dlH:"⬇️ Downloads per game", dlHint:"Sum of all downloads from GitHub.",
+      plH:"🎮 Times played per game",
+      plHint:"We count every time a browser game is opened. We started counting today!",
+      loading:"Loading…", plEmpty:"Waiting for the first plays…",
+      share:"📣 Share your games to get more players",
+      priv:"🔒 This counts HOW MANY times, never WHO. Numbers only, no personal data.",
+      updated:"Last updated:", offline:"no live connection",
+      rate:"GitHub asked us to wait a bit (web rate limit). Showing the last saved numbers. Tap 🔄 later.",
+      cached:"(saved numbers)" }
+  };
+  var lang = "es";
+  try{ lang = (new URLSearchParams(location.search).get("lang") || localStorage.getItem("arcade.lang") || navigator.language || "es").slice(0,2); }catch(e){}
+  if(!T[lang]) lang = "es";
+  function applyLang(){
+    document.documentElement.lang = lang;
+    var t = T[lang];
+    document.querySelectorAll("[data-t]").forEach(function(el){ var k=el.getAttribute("data-t"); if(t[k]!=null) el.textContent=t[k]; });
+    document.querySelectorAll("#lang button").forEach(function(b){ b.classList.toggle("on", b.getAttribute("data-l")===lang); });
+    render();
+  }
+  document.getElementById("lang").addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    lang=b.getAttribute("data-l"); try{localStorage.setItem("arcade.lang",lang);}catch(_){}
+    applyLang();
+  });
+
+  // ---------- known games (for download repos + friendly names of play ids) ----------
+  // Downloadable games: GitHub repo -> display. Page probes each; 404 is skipped.
+  var DL_REPOS = [
+    { repo:"kmm-world",             name:"KMM World",        icon:"🌍" },
+    { repo:"kmm-cars-models-drive", name:"KMM Cars",         icon:"🏎️" },
+    { repo:"dont-look-back",        name:"Don't Look Back",  icon:"👁️" },
+    { repo:"lashimco",              name:"Lashimco",         icon:"🦁" },
+    { repo:"film-kmm",              name:"Films",            icon:"🎬" },
+    { repo:"pvp-kmm",               name:"PvP KMM",          icon:"🔫" },
+    { repo:"it-needs-two-kmm",      name:"It Needs Two",     icon:"🤝" },
+    // probed too — included only if they exist (HTTP 200):
+    { repo:"caza-kmm",              name:"Hit the Chicken",  icon:"🐔" },
+    { repo:"kmm",                   name:"KMM",              icon:"🎮" }
+  ];
+  // Friendly labels for play-counter game ids seen on the broker.
+  var PLAY_NAMES = {
+    home:{n:"Inicio del arcade",icon:"🏠"}, snake:{n:"Snake",icon:"🐍"}, tetris:{n:"Tetris",icon:"🧱"},
+    "2048":{n:"2048",icon:"🔢"}, flappy:{n:"Flappy",icon:"🐤"}, breakout:{n:"Breakout",icon:"🧱"},
+    memory:{n:"Memory Match",icon:"🃏"}, minesweeper:{n:"Minesweeper",icon:"💣"}, whack:{n:"Whack-a-Mole",icon:"🔨"},
+    pong:{n:"Pong",icon:"🏓"}, invaders:{n:"Space Invaders",icon:"👾"}, simon:{n:"Simon",icon:"🎵"},
+    asteroids:{n:"Asteroids",icon:"🚀"}, infinitecraft:{n:"Infinite Craft",icon:"♾️"}, cocina:{n:"Cocina del Mundo",icon:"🍲"},
+    kamyspikes:{n:"Kamy Spikes",icon:"🔺"}, cazapollos:{n:"Hit the Chicken",icon:"🐔"}, comelon:{n:"Comelón",icon:"😋"},
+    battleroyale:{n:"Battle Royale",icon:"🪂"}, cartas:{n:"Crazy Cards",icon:"🃏"}, savedog:{n:"Save the Dog",icon:"🐶"},
+    ajedrez:{n:"Ajedrez",icon:"♟️"}, ideas:{n:"Ideas KMM",icon:"💡"}, claude:{n:"Claude KMM",icon:"✨"},
+    teclado:{n:"Diario Teclado",icon:"⌨️"}, motoloca:{n:"Moto Loca",icon:"🏍️"}, nitro:{n:"Nitro",icon:"🏎️"},
+    swinghero:{n:"Swing Hero",icon:"🕸️"}, juntos:{n:"Juntos",icon:"🤝"}, minecraft:{n:"Minecraft KMM",icon:"⛏️"},
+    crash:{n:"Aventura Locura",icon:"🦊"}, tagkamyar:{n:"Tag con Kamyar",icon:"🏃"}, consola:{n:"Consola Nebula",icon:"🌌"}
+  };
+  var CPAL = ["var(--c1)","var(--c2)","var(--c3)","var(--c4)","var(--c5)","var(--c6)","var(--c7)","var(--c8)"];
+
+  // ---------- state ----------
+  var dl = { items:[], total:0, cached:false };     // downloads
+  var plays = {};                                   // id -> count (live, retained)
+  var playTotal = 0;
+  var nowCount = 0, nowConnected = false;
+  var lastUpdate = 0;
+
+  // ---------- number animation ----------
+  function animateNum(el, to){
+    var from = parseInt((el.getAttribute("data-v")||"0"),10) || 0;
+    if(from===to){ el.textContent = to; return; }
+    el.setAttribute("data-v", String(to));
+    var start = performance.now(), dur = 900;
+    function step(now){
+      var p = Math.min(1,(now-start)/dur); p = 1-Math.pow(1-p,3);
+      el.textContent = Math.round(from + (to-from)*p);
+      if(p<1) requestAnimationFrame(step); else el.textContent = to;
+    }
+    requestAnimationFrame(step);
+  }
+
+  // ---------- render ----------
+  function render(){
+    var t = T[lang];
+    // hero numbers
+    animateNum(document.getElementById("dlTotal"), dl.total);
+    animateNum(document.getElementById("plTotal"), playTotal);
+    var nowEl = document.getElementById("nowTotal");
+    if(nowConnected){ animateNum(nowEl, nowCount); }
+    else { nowEl.textContent="—"; document.getElementById("nowFoot").textContent = t.offline; }
+
+    // trophies / milestones
+    setTrophy("dlTrophy", dl.total);
+    setTrophy("plTrophy", playTotal);
+
+    // download tiles + bars
+    var tiles = document.getElementById("dlTiles");
+    var bars = document.getElementById("dlBars");
+    if(dl.items.length){
+      tiles.innerHTML = dl.items.map(function(g){
+        return '<div class="tile"><div class="ic">'+g.icon+'</div><div class="nm">'+esc(g.name)+
+          '</div><div class="v">'+g.count+'</div></div>';
+      }).join("");
+      var max = Math.max.apply(null, dl.items.map(function(g){return g.count;}).concat([1]));
+      bars.innerHTML = dl.items.map(function(g,i){
+        var pct = Math.max(3, Math.round(g.count/max*100));
+        var col = CPAL[i % CPAL.length];
+        return '<div class="bar"><span class="lbl">'+g.icon+' '+esc(g.name)+'</span>'+
+          '<span class="track"><span class="fill" style="background:'+col+'" data-w="'+pct+'"></span></span>'+
+          '<span class="val">'+g.count+'</span></div>';
+      }).join("");
+      // animate fills
+      requestAnimationFrame(function(){ requestAnimationFrame(function(){
+        bars.querySelectorAll(".fill").forEach(function(f){ f.style.width = f.getAttribute("data-w")+"%"; });
+      }); });
+    } else {
+      tiles.innerHTML = '<div class="empty">'+t.loading+'</div>'; bars.innerHTML="";
+    }
+
+    // play tiles
+    var pids = Object.keys(plays).filter(function(id){ return id!=="stats" && (plays[id]||0)>0; })
+      .sort(function(a,b){ return plays[b]-plays[a]; });
+    var pt = document.getElementById("plTiles");
+    if(pids.length){
+      pt.innerHTML = pids.map(function(id){
+        var meta = PLAY_NAMES[id] || {n:id, icon:"🕹️"};
+        return '<div class="tile"><div class="ic">'+meta.icon+'</div><div class="nm">'+esc(meta.n)+
+          '</div><div class="v">'+plays[id]+'</div></div>';
+      }).join("");
+    } else {
+      pt.innerHTML = '<div class="empty">'+t.plEmpty+'</div>';
+    }
+
+    // rate-limit note
+    var rn = document.getElementById("rateNote");
+    if(dl.cached){ rn.textContent = t.rate; rn.style.display="block"; } else { rn.style.display="none"; }
+
+    // updated line
+    if(lastUpdate){
+      var d = new Date(lastUpdate);
+      document.getElementById("updated").textContent =
+        t.updated+" "+d.toLocaleString(lang==="es"?"es-ES":"en-US") + (dl.cached? " "+t.cached : "");
+    }
+  }
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){return{"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+
+  // ---------- milestones + confetti ----------
+  var MILES = [10,50,100,250,500,1000];
+  function milestoneFor(n){ var m=0; for(var i=0;i<MILES.length;i++){ if(n>=MILES[i]) m=MILES[i]; } return m; }
+  function trophyEmoji(m){ return m>=1000?"👑":m>=500?"🏆":m>=250?"🥇":m>=100?"🏅":m>=50?"🎖️":m>=10?"⭐":""; }
+  function setTrophy(id, n){
+    var m = milestoneFor(n), el=document.getElementById(id);
+    if(m){ el.textContent = trophyEmoji(m); el.style.display="block"; el.title=m+"+"; }
+    else el.style.display="none";
+    // celebrate the first time we cross a new milestone this device
+    try{
+      var key = "kmm.stats.mile."+id;
+      var seen = +(localStorage.getItem(key)||0);
+      if(m>seen){ localStorage.setItem(key,String(m)); if(seen>0 || m>=10) burstConfetti(); }
+    }catch(_){}
+  }
+  var cc = document.getElementById("confetti"), ctx = cc.getContext("2d"), parts=[], raf=0;
+  function sizeC(){ cc.width=innerWidth; cc.height=innerHeight; }
+  function burstConfetti(){
+    sizeC(); cc.style.display="block";
+    var cols=["#3987e5","#d95926","#199e70","#c98500","#d55181","#9085e9","#e66767","#ffd34d"];
+    for(var i=0;i<140;i++){ parts.push({x:innerWidth/2,y:innerHeight*0.3,
+      vx:(Math.random()-0.5)*12, vy:Math.random()*-12-4, g:0.35+Math.random()*0.2,
+      s:5+Math.random()*7, c:cols[(Math.random()*cols.length)|0], r:Math.random()*6, vr:(Math.random()-0.5)*0.4, life:0}); }
+    if(!raf) raf=requestAnimationFrame(tick);
+  }
+  function tick(){
+    ctx.clearRect(0,0,cc.width,cc.height); var alive=0;
+    for(var i=0;i<parts.length;i++){ var p=parts[i]; if(p.life>220) continue; alive++;
+      p.life++; p.vy+=p.g; p.x+=p.vx; p.y+=p.vy; p.r+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r); ctx.fillStyle=p.c;
+      ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6); ctx.restore();
+    }
+    if(alive>0){ raf=requestAnimationFrame(tick); } else { raf=0; parts=[]; cc.style.display="none"; }
+  }
+
+  // ---------- GitHub downloads ----------
+  var CACHE_KEY = "kmm.stats.dl.v1";
+  function loadCache(){
+    try{ var c = JSON.parse(localStorage.getItem(CACHE_KEY)||"null");
+      if(c && c.items){ dl.items=c.items; dl.total=c.total; lastUpdate=c.ts; return true; } }catch(_){}
+    return false;
+  }
+  function saveCache(){
+    try{ localStorage.setItem(CACHE_KEY, JSON.stringify({items:dl.items,total:dl.total,ts:lastUpdate})); }catch(_){}
+  }
+  function fetchDownloads(){
+    var rated = false;
+    var jobs = DL_REPOS.map(function(g){
+      return fetch("https://api.github.com/repos/kmaram16/"+g.repo+"/releases",{headers:{Accept:"application/vnd.github+json"}})
+        .then(function(r){
+          if(r.status===403 || r.status===429){ rated = true; return null; }
+          if(!r.ok) return null; // 404 etc -> skip repo
+          return r.json();
+        })
+        .then(function(rel){
+          if(!rel || !Array.isArray(rel)) return null;
+          var sum=0; rel.forEach(function(rl){ (rl.assets||[]).forEach(function(a){ sum += (a.download_count||0); }); });
+          return { repo:g.repo, name:g.name, icon:g.icon, count:sum };
+        })
+        .catch(function(){ return null; });
+    });
+    return Promise.all(jobs).then(function(res){
+      var items = res.filter(Boolean);
+      if(items.length){
+        items.sort(function(a,b){ return b.count-a.count; });
+        dl.items = items;
+        dl.total = items.reduce(function(s,g){ return s+g.count; },0);
+        dl.cached = false; lastUpdate = Date.now(); saveCache();
+      } else if(rated){
+        dl.cached = true; // keep whatever cache we loaded
+        if(!dl.items.length) loadCache();
+      }
+      render();
+    });
+  }
+
+  // ---------- MQTT: live plays + presence ----------
+  var PLAYS_ROOT = "kmm-arcade/plays/v1/";
+  var PRESENCE = "kmm-arcade/presence";
+  var seen = {};   // presence id -> ts
+  function startMqtt(){
+    if(!window.mqtt) return;
+    var myId = Math.random().toString(36).slice(2)+Date.now().toString(36);
+    var client;
+    try{
+      client = mqtt.connect("wss://broker.emqx.io:8084/mqtt",{
+        clientId:"kmm-stats-"+myId, keepalive:30, reconnectPeriod:5000, connectTimeout:8000, clean:true });
+    }catch(e){ return; }
+    client.on("connect",function(){
+      nowConnected = true;
+      client.subscribe(PLAYS_ROOT+"#",{qos:0});
+      client.subscribe(PRESENCE,{qos:0});
+      // heartbeat so stats viewers also count as "playing now"
+      var beat=function(){ if(client.connected) client.publish(PRESENCE, JSON.stringify({id:myId,room:"stats"})); };
+      beat(); setInterval(beat,4000);
+      render();
+    });
+    client.on("message",function(topic,payload){
+      var txt = new TextDecoder().decode(payload);
+      if(topic.indexOf(PLAYS_ROOT)===0){
+        var id = topic.slice(PLAYS_ROOT.length);
+        var n = parseInt(txt,10);
+        if(!isNaN(n)){ plays[id]=n; recomputePlays(); render(); }
+      } else if(topic===PRESENCE){
+        try{ var m=JSON.parse(txt); if(m&&typeof m.id==="string") seen[m.id]=Date.now(); }catch(_){}
+      }
+    });
+    client.on("error",function(){ nowConnected=false; });
+    client.on("close",function(){ nowConnected=false; });
+    // prune presence every 2s
+    setInterval(function(){
+      var cut=Date.now()-12000, c=0;
+      for(var k in seen){ if(seen[k]<cut) delete seen[k]; else c++; }
+      nowCount = Math.max(nowConnected?1:0, c);
+      if(nowConnected){ animateNow(); }
+    },2000);
+  }
+  function recomputePlays(){
+    var s=0; for(var k in plays){ if(k!=="stats") s+=(plays[k]||0); } playTotal=s;
+  }
+  function animateNow(){
+    var el=document.getElementById("nowTotal");
+    document.getElementById("nowFoot").textContent = T[lang].footNow;
+    animateNum(el, nowCount);
+  }
+
+  // ---------- wire up ----------
+  document.getElementById("refresh").addEventListener("click",function(){ fetchDownloads(); });
+  window.addEventListener("resize",function(){ if(cc.style.display==="block") sizeC(); });
+
+  applyLang();
+  loadCache(); render();
+  fetchDownloads();
+  startMqtt();
+  setInterval(fetchDownloads, 60000); // auto-refresh downloads every 60s
+})();
+</script>
+</body>
+</html>

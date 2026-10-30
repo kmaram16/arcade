@@ -1008,7 +1008,87 @@
   }
   window.__voice = handleVoice; // test hook (typed command path)
 
+  // ---------- recenter the TV ----------
+  function recenterTv() {
+    tvX = 0; tvY = 0; applyTv();
+    try { localStorage.setItem('consola.tvX', 0); localStorage.setItem('consola.tvY', 0); } catch (e) {}
+    toast(t().placed || 'TV centered');
+  }
+
+  // ---------- AR lighting match: sample the camera frame and gently tint/expose
+  //            the 3D pets (via tv3d) and the TV to match the real room ----------
+  var ambient = { r: 1, g: 1, b: 1, lum: 0.6 };
+  window.__CONSOLA_AMBIENT = function () { return ambient; };
+  var sampleCv = null;
+  function sampleAmbient() {
+    if (!camOn || !video || video.readyState < 2) return;
+    try {
+      if (!sampleCv) { sampleCv = document.createElement('canvas'); sampleCv.width = 16; sampleCv.height = 16; }
+      var cx = sampleCv.getContext('2d'); cx.drawImage(video, 0, 0, 16, 16);
+      var d = cx.getImageData(0, 0, 16, 16).data, r = 0, g = 0, b = 0, n = d.length / 4;
+      for (var i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; }
+      r = r / n / 255; g = g / n / 255; b = b / n / 255;
+      var lum = 0.299 * r + 0.587 * g + 0.114 * b;
+      ambient.r += (r - ambient.r) * 0.35; ambient.g += (g - ambient.g) * 0.35;
+      ambient.b += (b - ambient.b) * 0.35; ambient.lum += (lum - ambient.lum) * 0.35;
+      // mild match on the CSS TV (keep the screen glow alive — gentle range)
+      var bri = Math.max(0.9, Math.min(1.12, 0.92 + ambient.lum * 0.3));
+      if (tvWrap) tvWrap.style.filter = 'brightness(' + bri.toFixed(3) + ')';
+    } catch (e) {}
+  }
+  setInterval(sampleAmbient, 1100);
+
+  // ---------- on-screen control cluster: do everything by tapping ----------
+  function buildControls() {
+    var fab = document.createElement('button');
+    fab.id = 'controlsFab'; fab.className = 'controls-fab'; fab.type = 'button';
+    fab.setAttribute('aria-label', 'Controles'); fab.title = 'Controles'; fab.textContent = '☰';
+    var panel = document.createElement('div');
+    panel.id = 'controlPanel'; panel.className = 'control-panel'; panel.hidden = true; panel.setAttribute('role', 'menu');
+    document.body.appendChild(fab); document.body.appendChild(panel);
+    var open = false;
+    function closeP() { open = false; panel.hidden = true; fab.classList.remove('on'); }
+    function toggle() { open = !open; if (open) { fill(); panel.hidden = false; fab.classList.add('on'); } else closeP(); }
+    fab.addEventListener('click', toggle);
+    document.addEventListener('click', function (e) { if (open && e.target !== fab && !panel.contains(e.target)) closeP(); }, true);
+    window.__closeControls = closeP;
+    function click(id) { var el = $(id); if (el) el.click(); }
+    function item(icon, label, fn, keep) {
+      var b = document.createElement('button'); b.type = 'button'; b.className = 'ctrl-btn'; b.title = label; b.setAttribute('role', 'menuitem');
+      b.innerHTML = '<span class="ci" aria-hidden="true">' + icon + '</span><span class="cl">' + esc(label) + '</span>';
+      b.addEventListener('click', function (ev) { ev.stopPropagation(); blip(560); fn(); if (!keep) closeP(); });
+      panel.appendChild(b);
+    }
+    function fill() {
+      var s = t(); panel.innerHTML = '';
+      if (current) {
+        item('⟵', s.home || 'Menu', function () { goHome(); });
+        item('🎤', s.voice || 'Talk', function () { startVoice(); }, true);
+        item('⛶', 'Pantalla', function () { click('fsBtn'); }, true);
+      } else {
+        item('◀', 'Anterior', function () { carMove(-1); }, true);
+        item('▶', 'Siguiente', function () { carMove(1); }, true);
+        item('▶️', s.play || 'Play', function () { carLaunch(); });
+        item('🔍', s.searchAct || 'Search', function () { $('search').focus(); });
+        item('⭐', s.favorite || 'Favorite', function () { toggleFav(); }, true);
+        item('🎤', s.voice || 'Talk', function () { startVoice(); }, true);
+        item('📷', s.cameraAct || 'Camera', function () { click('camBtn'); }, true);
+        item('📍', s.moveTv || 'Place TV', function () { click('placeBtn'); });
+        item('➖', 'Más pequeña', function () { click('sizeDown'); }, true);
+        item('➕', 'Más grande', function () { click('sizeUp'); }, true);
+        item('⟳', 'Centrar', function () { recenterTv(); }, true);
+        item(bgMode === 'space' ? '🪟' : '🌌', bgMode === 'space' ? (s.bgRoom || 'Room') : (s.bgSpace || 'Space'), function () { click('bgBtn'); fill(); }, true);
+        item(mode === 'pc' ? '🎮' : '⌨️', mode === 'pc' ? (s.modeConsole || 'Console') : (s.modePc || 'PC'), function () { click('modeBtn'); fill(); }, true);
+        item('🔊', s.voiceOut || 'Voice', function () { click('ttsBtn'); });
+        item('🌐', 'Idioma', function () { openPicker(); });
+        item('👤', 'Perfil', function () { click('profileBtn'); });
+        item('⛶', 'Pantalla', function () { click('fsBtn'); }, true);
+      }
+    }
+  }
+
   // ---------- init ----------
+  buildControls();
   setMode(savedMode() || 'console', false);
   applyTv();
   loadProfile();

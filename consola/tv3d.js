@@ -109,8 +109,9 @@ import * as THREE from './vendor/three.module.js';
     return new THREE.MeshStandardMaterial(Object.assign({ color: color, roughness: 0.95, metalness: 0, envMapIntensity: 0.5 }, opt));
   }
 
+  var hemiLight;
   function buildLights(c) {
-    scene.add(new THREE.HemisphereLight(0xbcd0ff, 0x202435, 0.38));
+    hemiLight = new THREE.HemisphereLight(0xbcd0ff, 0x202435, 0.38); scene.add(hemiLight);
     scene.add(new THREE.AmbientLight(0x4a5a8c, 0.22));
     keyLight = new THREE.DirectionalLight(0xfff2e2, 2.1);
     keyLight.position.set(3.5, 6.5, 4.5);
@@ -376,11 +377,22 @@ import * as THREE from './vendor/three.module.js';
     var dt = clock.getDelta();
     var ar = $('bg') && $('bg').classList.contains('cam-on');
     var mode = (window.__CONSOLA_BG && window.__CONSOLA_BG()) || 'room';
-    if (ar) { roomGroup.visible = false; spaceGroup.visible = false; scene.fog = null; }
+    if (ar) {
+      roomGroup.visible = false; spaceGroup.visible = false; scene.fog = null;
+      // lighting match: tint the hemisphere light + exposure to the real room
+      var a = (window.__CONSOLA_AMBIENT && window.__CONSOLA_AMBIENT()) || null;
+      if (a && hemiLight) {
+        hemiLight.color.setRGB(0.6 + a.r * 0.6, 0.62 + a.g * 0.55, 0.7 + a.b * 0.45);
+        hemiLight.intensity = 0.3 + a.lum * 0.7;
+        renderer.toneMappingExposure = 0.92 + a.lum * 0.5;
+      }
+    }
     else {
       var sp = mode === 'space';
       roomGroup.visible = !sp; spaceGroup.visible = sp; scene.fog = sp ? fogSpace : fogRoom;
       if (sp && spaceGroup.userData.stars && animPets) spaceGroup.userData.stars.rotation.y += dt * 0.012;
+      if (hemiLight) { hemiLight.color.setHex(0xbcd0ff); hemiLight.intensity = 0.38; }
+      renderer.toneMappingExposure = 1.1;
     }
     // pets follow the TV's placed position (x) and size (s)
     var a = (window.__CONSOLA_TV && window.__CONSOLA_TV()) || { x: 0, y: 0, s: 0.6 };

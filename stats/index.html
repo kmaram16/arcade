@@ -211,17 +211,19 @@
 
   // ---------- known games (for download repos + friendly names of play ids) ----------
   // Downloadable games: GitHub repo -> display. Page probes each; 404 is skipped.
+  // `base` = our own test downloads on 2026-11-01, subtracted so "descargas
+  // totales" counts only NEW real downloads from other people (not us).
   var DL_REPOS = [
-    { repo:"kmm-world",             name:"KMM World",        icon:"🌍" },
-    { repo:"kmm-cars-models-drive", name:"KMM Cars",         icon:"🏎️" },
-    { repo:"dont-look-back",        name:"Don't Look Back",  icon:"👁️" },
-    { repo:"lashimco",              name:"Lashimco",         icon:"🦁" },
-    { repo:"film-kmm",              name:"Films",            icon:"🎬" },
-    { repo:"pvp-kmm",               name:"PvP KMM",          icon:"🔫" },
-    { repo:"it-needs-two-kmm",      name:"It Needs Two",     icon:"🤝" },
+    { repo:"kmm-world",             name:"KMM World",        icon:"🌍", base:12 },
+    { repo:"kmm-cars-models-drive", name:"KMM Cars",         icon:"🏎️", base:11 },
+    { repo:"dont-look-back",        name:"Don't Look Back",  icon:"👁️", base:21 },
+    { repo:"lashimco",              name:"Lashimco",         icon:"🦁", base:5 },
+    { repo:"film-kmm",              name:"Films",            icon:"🎬", base:4 },
+    { repo:"pvp-kmm",               name:"PvP KMM",          icon:"🔫", base:2 },
+    { repo:"it-needs-two-kmm",      name:"It Needs Two",     icon:"🤝", base:1 },
     // probed too — included only if they exist (HTTP 200):
-    { repo:"caza-kmm",              name:"Hit the Chicken",  icon:"🐔" },
-    { repo:"kmm",                   name:"KMM",              icon:"🎮" }
+    { repo:"caza-kmm",              name:"Hit the Chicken",  icon:"🐔", base:0 },
+    { repo:"kmm",                   name:"KMM",              icon:"🎮", base:0 }
   ];
   // Friendly labels for play-counter game ids seen on the broker.
   var PLAY_NAMES = {
@@ -382,7 +384,7 @@
         .then(function(rel){
           if(!rel || !Array.isArray(rel)) return null;
           var sum=0; rel.forEach(function(rl){ (rl.assets||[]).forEach(function(a){ sum += (a.download_count||0); }); });
-          return { repo:g.repo, name:g.name, icon:g.icon, count:sum };
+          return { repo:g.repo, name:g.name, icon:g.icon, count:Math.max(0, sum - (g.base||0)) };
         })
         .catch(function(){ return null; });
     });
